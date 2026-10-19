@@ -28,6 +28,9 @@ jobs:
             frontend:
               - frontend/**
               - .github/workflows/build.yml
+            collector:
+              - collector/**
+              - .github/workflows/build.yml
       - run: |
           echo ${{ toJSON(steps.filter.outputs.changes) }}
   build:
@@ -53,7 +56,25 @@ jobs:
         uses: it-at-m/lhm_actions/action-templates/actions/action-maven-build@e967c9de8fb0197faf7a294d153efa76de5cec27 # v1.6.0
         with:
           app-path: ${{ matrix.app-path }}
-      - if: ${{ github.ref == 'refs/heads/main' && (steps.node.outcome == 'success' || steps.maven.outcome == 'success') && hashFiles(format('./{0}/Dockerfile', matrix.app-path)) != '' }}
+      - if: ${{ matrix.app-path == 'collector' }}
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14" # same as the base image of collector/Dockerfile
+      - id: python # required for steps.* syntax
+        if: ${{ matrix.app-path == 'collector' }}
+        working-directory: collector
+        run: |
+          python -m unittest discover -s tests
+          pipx run ruff==0.16.8 check --target-version py314 .
+          echo "artifact-name=collector" >> "$GITHUB_OUTPUT"
+      # The image build expects a build artifact, the collector has nothing to build
+      - if: ${{ steps.python.outcome == 'success' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.python.outputs.artifact-name }}
+          path: collector/*.py
+          retention-days: 5
+      - if: ${{ github.ref == 'refs/heads/main' && (steps.node.outcome == 'success' || steps.maven.outcome == 'success' || steps.python.outcome == 'success') && hashFiles(format('./{0}/Dockerfile', matrix.app-path)) != '' }}
         uses: it-at-m/lhm_actions/action-templates/actions/action-build-image@e967c9de8fb0197faf7a294d153efa76de5cec27 # v1.6.0
         with:
           path: ${{ matrix.app-path }}

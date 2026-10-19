@@ -11,23 +11,57 @@ Live occupancy of the parking garages in Munich's city center on an interactive 
 
 ### Built With
 
-TBD
-
-## Roadmap
-
-TBD
-
-See the [open issues](https://github.com/it-at-m/parkhausradar/issues) for a full list of proposed features (and known issues).
+- Frontend: [Vue 3](https://vuejs.org/), [Vuetify](https://vuetifyjs.com/), [MapLibre GL JS](https://maplibre.org/) with a [Protomaps](https://protomaps.com/) basemap, built with [Vite](https://vite.dev/)
+- Backend: [FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server) (OGC SensorThings API) on [PostGIS](https://postgis.net/), filled by a Python collector, behind the [RefArch gateway](https://github.com/it-at-m/refarch)
 
 ## Set up
 
-TBD
+The frontend lives in `frontend/` and needs npm 11.6 or newer. There are two ways to run it:
+
+| Command (in `frontend/`) | Data |
+| --- | --- |
+| `npm run dev` | Simulated parking garages, answered by the dev server |
+| `npm run dev:stack` | Real data from the local stack behind the RefArch gateway |
+
+### Simulated data (`npm run dev`)
+
+The dev server answers the FROST requests of the app itself, in exactly the format of the FROST-Server. The simulation lives in `frontend/simulator/` and never ends up in the production build.
+Ten made-up garages change their values every minute, some of them with typical data quality problems like a frozen counter.
+
+### Local stack (`npm run dev:stack`)
+
+`stack/` starts the backend locally with Docker Compose, as in production:
+
+```mermaid
+flowchart LR
+    browser([Browser]) --> vite["Vite dev server<br>localhost:8081"]
+    vite -- "/api" --> gateway["refarch-gateway<br>localhost:8083"]
+    gateway -- "GET, HEAD<br>/api/frost/**" --> frost["frost<br>127.0.0.1:8080"]
+    gateway -- "/**" --> vite
+    source(["Parking guidance system<br>pls-muc-z.com"]) -- "every 60 s" --> collector
+    collector -- "writes directly" --> frost
+    frost --> postgis[("postgis")]
+    indexes["frost-indexes"] -. "once on start" .-> postgis
+```
+
+| Service | Purpose | Local URL |
+| --- | --- | --- |
+| `collector` | Writes the current occupancy to FROST every minute, see [Collector](#collector) | none |
+| `postgis` | Database of the FROST-Server | internal only |
+| `frost-indexes` | Adds the database indexes FROST does not create itself, see [`stack/frost-indexes.sql`](stack/frost-indexes.sql), then exits | none |
+| `frost` | SensorThings API with the parking garages and their observations | http://127.0.0.1:8080/FROST-Server/v1.1
+| `refarch-gateway` | Read-only access to FROST under `/api/frost` (`GET` and `HEAD`, otherwise `405`), as in production | http://127.0.0.1:8083/api/frost/v1.1 |
+
+```bash
+cd stack
+docker compose up -d
+```
 
 ## Documentation
 
 ### Architecture
 
-TBD
+The collector fetches the occupancy from the [data source](#data-sources) every minute and writes it to the FROST-Server, which stores it in PostGIS. The frontend reads the garages and their latest values from FROST through the RefArch gateway, which only allows reading. The [local stack](#local-stack-npm-run-devstack) shows the components as a diagram.
 
 ### Deployment
 
@@ -35,7 +69,31 @@ TBD
 
 ### Data Sources
 
-TBD
+The occupancy comes from the parking guidance system of Munich: [pls-muc-z.com/pls/info/parkhaus.txt](https://pls-muc-z.com/pls/info/parkhaus.txt), one tab separated line per garage with serial number, connection, P-Number, name, free spaces and capacity. The source has no timestamp and does not mark offline counting systems.
+
+### Collector
+
+`collector/` is a small Python service without dependencies that runs permanently. It
+
+1. creates or updates a Thing with its Locations and Datastreams in FROST for every garage in [`collector/garages.json`](collector/garages.json) once on start,
+2. fetches the source every 60 seconds and writes the free spaces and the capacity as one Observation each, with the time of the request, in one `CreateObservations` request (SensorThings Data Array extension).
+
+The garages, keyed by P-Number, live in `collector/garages.json` and are versioned with the code. Garages of the source that are missing there are skipped. They are listed in the log on start and whenever the list changes. An entry looks like this, coordinates as `[longitude, latitude]`:
+
+```json
+{
+  "pNumber": "P99",
+  "name": "Musterparkhaus",
+  "address": "Musterstraße 1, 80331 München",
+  "operatorUrl": "https://example.com",
+  "location": [11.5658, 48.1391],
+  "entrances": [[11.5655, 48.1393]]
+}
+```
+
+`address` and `operatorUrl` may be `null`. A failed run is logged and repeated a minute later, starting again with step 1, so the collector also recovers after FROST was unavailable or reset.
+
+The collector writes directly to FROST, configured by `FROST_URL` (e.g. `http://frost:8080/FROST-Server/v1.1`). Run the tests in `collector/` with `python -m unittest discover -s tests`. The CI additionally runs `ruff check` and builds the image `collector:dev` on `main`, like for the frontend.
 
 ### Basemap
 
