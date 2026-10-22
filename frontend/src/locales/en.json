@@ -1,0 +1,25 @@
+{
+  "components": {
+    "theMap": {
+      "label": "Map of Munich",
+      "loadError": "The map could not be loaded.",
+      "garage": "{name}: {free} of {capacity} free",
+      "garageWithoutData": "{name}: no data",
+      "garagesLoadError": "The parking garages could not be loaded."
+    },
+    "theSettings": {
+      "open": "Open settings",
+      "close": "Close settings",
+      "title": "Settings",
+      "appearance": "Appearance",
+      "theme": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "language": "Language",
+      "systemLanguage": "Device language ({language})",
+      "sourceCode": "Source code on GitHub"
+    }
+  }
+}
