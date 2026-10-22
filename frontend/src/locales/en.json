@@ -4,6 +4,7 @@
       "label": "Map of Munich",
       "loadError": "The map could not be loaded.",
       "garage": "{name}: {free} of {capacity} free",
+      "garageOutdated": "{name}: {free} of {capacity} free, outdated",
       "garageWithoutData": "{name}: no data",
       "garagesLoadError": "The parking garages could not be loaded."
     },
@@ -20,6 +21,15 @@
       "language": "Language",
       "systemLanguage": "Device language ({language})",
       "sourceCode": "Source code on GitHub"
+    },
+    "garageDetails": {
+      "close": "Close details",
+      "ofCapacityFree": "of {capacity} free",
+      "free": "free",
+      "occupancy": "Occupancy",
+      "occupied": "{percent} occupied",
+      "updated": "Updated {time}",
+      "noData": "No current occupancy data"
     }
   }
 }
