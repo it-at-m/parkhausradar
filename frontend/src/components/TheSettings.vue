@@ -17,9 +17,11 @@
       />
     </template>
 
+    <!-- A menu taller than the space below its button is shifted over the button, so it scrolls instead -->
     <v-card
       class="d-flex flex-column"
       :width="xs ? undefined : 360"
+      :max-height="xs ? undefined : MENU_MAX_HEIGHT"
       :rounded="xs ? 0 : 'lg'"
       :border="!xs"
     >
@@ -53,50 +55,69 @@
         </template>
       </v-card-item>
 
-      <v-card-text>
-        <h3
-          id="settings-appearance-label"
-          class="text-label-large text-uppercase text-medium-emphasis mb-3"
-        >
-          {{ t("components.theSettings.appearance") }}
-        </h3>
-        <v-btn-toggle
-          v-model="settingsStore.themePreference"
-          class="w-100 h-auto pa-1 ga-1"
-          aria-labelledby="settings-appearance-label"
-          mandatory
-          border
-        >
-          <v-btn
-            v-for="option in themeOptions"
-            :key="option.value"
-            :data-test="`settings-theme-${option.value}-btn`"
-            class="flex-1-1-0"
-            :value="option.value"
-            :prepend-icon="option.icon"
-            :text="option.label"
-            variant="text"
-            height="64"
-            stacked
-          />
-        </v-btn-toggle>
+      <div class="flex-grow-1 overflow-y-auto">
+        <v-card-text>
+          <h3
+            id="settings-appearance-label"
+            class="text-label-large text-uppercase text-medium-emphasis mb-3"
+          >
+            {{ t("components.theSettings.appearance") }}
+          </h3>
+          <v-btn-toggle
+            v-model="settingsStore.themePreference"
+            class="w-100 h-auto pa-1 ga-1"
+            aria-labelledby="settings-appearance-label"
+            mandatory
+            border
+          >
+            <v-btn
+              v-for="option in themeOptions"
+              :key="option.value"
+              :data-test="`settings-theme-${option.value}-btn`"
+              class="flex-1-1-0"
+              :value="option.value"
+              :prepend-icon="option.icon"
+              :text="option.label"
+              variant="text"
+              height="64"
+              stacked
+            />
+          </v-btn-toggle>
 
-        <h3
-          id="settings-language-label"
-          class="text-label-large text-uppercase text-medium-emphasis mt-6 mb-3"
+          <h3
+            id="settings-language-label"
+            class="text-label-large text-uppercase text-medium-emphasis mt-6 mb-3"
+          >
+            {{ t("components.theSettings.language") }}
+          </h3>
+          <v-select
+            v-model="settingsStore.localePreference"
+            data-test="settings-language-select"
+            :items="localeOptions"
+            aria-labelledby="settings-language-label"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+          />
+        </v-card-text>
+
+        <v-divider class="mx-4" />
+
+        <v-list
+          tag="nav"
+          :aria-label="t('components.theSettings.legal')"
         >
-          {{ t("components.theSettings.language") }}
-        </h3>
-        <v-select
-          v-model="settingsStore.localePreference"
-          data-test="settings-language-select"
-          :items="localeOptions"
-          aria-labelledby="settings-language-label"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-        />
-      </v-card-text>
+          <v-list-item
+            v-for="link in legalLinks"
+            :key="link.to"
+            :data-test="`settings-legal-${link.to.slice(1)}-link`"
+            :to="link.to"
+            :prepend-icon="mdiFileDocumentOutline"
+            :title="link.label"
+            @click="isOpen = false"
+          />
+        </v-list>
+      </div>
 
       <v-divider />
 
@@ -127,6 +148,7 @@ import {
   mdiCellphone,
   mdiClose,
   mdiCog,
+  mdiFileDocumentOutline,
   mdiGithub,
   mdiMonitor,
   mdiWeatherNight,
@@ -141,6 +163,8 @@ import { SUPPORTED_LOCALES } from "@/plugins/i18n";
 import { useSettingsStore } from "@/stores/settings";
 
 const SOURCE_CODE_URL = "https://github.com/it-at-m/parkhausradar";
+// Space below the button (16px margin, 48px button, 8px offset) and a 16px gap to the bottom of the screen
+const MENU_MAX_HEIGHT = "calc(100dvh - 88px)";
 
 const { t } = useI18n();
 const { xs } = useDisplay();
@@ -176,6 +200,15 @@ const themeOptions = computed<
 ]);
 const settingsStore = useSettingsStore();
 const isOpen = ref(false);
+
+const legalLinks = computed(() => [
+  { to: "/impressum", label: t("components.theSettings.imprint") },
+  { to: "/datenschutz", label: t("components.theSettings.privacy") },
+  {
+    to: "/barrierefreiheit",
+    label: t("components.theSettings.accessibility"),
+  },
+]);
 
 // Languages are shown in their own language so users can find theirs regardless of the current locale
 function getLanguageName(locale: Locale): string {

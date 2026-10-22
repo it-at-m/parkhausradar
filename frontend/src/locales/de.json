@@ -19,7 +19,15 @@
       },
       "language": "Sprache",
       "systemLanguage": "Gerätesprache ({language})",
+      "legal": "Rechtliches",
+      "imprint": "Impressum",
+      "privacy": "Datenschutzerklärung",
+      "accessibility": "Barrierefreiheitserklärung",
       "sourceCode": "Quellcode auf GitHub"
+    },
+    "legalPage": {
+      "back": "Zurück zur Karte",
+      "germanOnly": "Diese Seite ist nur auf Deutsch verfügbar."
     }
   }
 }

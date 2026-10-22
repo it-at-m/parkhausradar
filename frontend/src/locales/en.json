@@ -19,7 +19,15 @@
       },
       "language": "Language",
       "systemLanguage": "Device language ({language})",
+      "legal": "Legal",
+      "imprint": "Imprint",
+      "privacy": "Privacy policy",
+      "accessibility": "Accessibility statement",
       "sourceCode": "Source code on GitHub"
+    },
+    "legalPage": {
+      "back": "Back to map",
+      "germanOnly": "This page is only available in German."
     }
   }
 }
