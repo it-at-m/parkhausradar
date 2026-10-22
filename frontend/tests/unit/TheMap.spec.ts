@@ -367,4 +367,37 @@ describe("TheMap refresh", () => {
       "Pschorr: 120 von 400 frei",
     ]);
   });
+
+  test("reports failed refreshes once the last counts are outdated", async () => {
+    // given
+    await mountMap();
+    vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+    await advance(15 * MINUTE);
+    const messagesWhileCurrent = useSnackbarStore().queue.length;
+
+    // when
+    await advance(5 * MINUTE);
+
+    // then
+    expect(messagesWhileCurrent).toBe(0);
+    expect(useSnackbarStore().queue.map((message) => message.text)).toEqual([
+      "Die Belegung konnte nicht aktualisiert werden.",
+    ]);
+  });
+
+  test("reports refreshes failing again after they had recovered", async () => {
+    // given
+    await mountMap();
+    vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+    await advance(16 * MINUTE);
+    vi.mocked(getGarages).mockResolvedValue([OPER, PSCHORR]);
+    await advance(MINUTE);
+    vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+
+    // when
+    await advance(16 * MINUTE);
+
+    // then
+    expect(useSnackbarStore().queue).toHaveLength(2);
+  });
 });

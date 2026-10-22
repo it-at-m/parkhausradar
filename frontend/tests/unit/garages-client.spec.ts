@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type {
   DatastreamType,
@@ -6,7 +6,7 @@ import type {
   LocationType,
 } from "../../src/api/frost";
 
-import { toGarage } from "../../src/api/garages-client";
+import { getGarages, toGarage } from "../../src/api/garages-client";
 
 function thing(overrides: Partial<FrostThing> = {}): FrostThing {
   return {
@@ -188,3 +188,85 @@ describe("toGarage", () => {
     );
   });
 });
+
+describe("getGarages", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  test("gives up on a stalled request, so later refreshes are not held back", async () => {
+    // given
+    const timeout = new AbortController();
+    vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeout.signal);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) =>
+            init.signal?.addEventListener("abort", () =>
+              reject(init.signal?.reason)
+            )
+          )
+      )
+    );
+    const request = getGarages();
+
+    // when
+    timeout.abort(new DOMException("timed out", "TimeoutError"));
+
+    // then
+    await expect(request).rejects.toThrow("timed out");
+  });
+
+  test("leaves out malformed garages and still returns all others", async () => {
+    // given
+    vi.spyOn(console, "debug").mockReturnValue();
+    respondWith([
+      thing(),
+      thing({ name: "Testparkhaus Süd" }),
+      thing({
+        name: "P4 Testparkhaus West",
+        properties: { pNumber: "P4", address: null, operatorUrl: null },
+      }),
+    ]);
+
+    // when
+    const garages = await getGarages();
+
+    // then
+    expect(garages.map((garage) => garage.name)).toEqual([
+      "Testparkhaus Nord",
+      "Testparkhaus West",
+    ]);
+    expect(console.debug).toHaveBeenCalledWith(
+      new Error('P3: name "Testparkhaus Süd" lacks its P-number')
+    );
+  });
+
+  test("fails if no garage matches the model, instead of showing an empty map", async () => {
+    // given
+    vi.spyOn(console, "debug").mockReturnValue();
+    respondWith([thing({ name: "Testparkhaus Süd" })]);
+
+    // then
+    await expect(getGarages()).rejects.toThrow(
+      "None of the garages match the model of the collector"
+    );
+  });
+
+  test("returns no garages if there are none", async () => {
+    // given
+    respondWith([]);
+
+    // then
+    await expect(getGarages()).resolves.toEqual([]);
+  });
+});
+
+function respondWith(things: FrostThing[]) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(Response.json({ value: things }))
+  );
+}

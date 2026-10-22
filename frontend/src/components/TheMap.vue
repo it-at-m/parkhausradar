@@ -41,7 +41,11 @@ import GarageMarker, {
 } from "@/components/GarageMarker.vue";
 import { STATUS_INDICATORS } from "@/constants";
 import { useSnackbarStore } from "@/stores/snackbar";
-import { getGarageStatus, isGarageDataOutdated } from "@/util/garageStatus";
+import {
+  GARAGE_DATA_MAX_AGE_MS,
+  getGarageStatus,
+  isGarageDataOutdated,
+} from "@/util/garageStatus";
 import { createMapStyle } from "@/util/mapStyle";
 import basemap from "../../basemap.json";
 
@@ -89,7 +93,7 @@ const now = useNow({
 let map: MapLibreMap | undefined;
 let cityBoundary: Feature<Polygon | MultiPolygon> | undefined;
 let loadErrorShown = false;
-let garagesLoaded = false;
+let garagesLoadedAt: number | undefined;
 let garagesLoadErrorShown = false;
 let garagesLoading = false;
 const garageMarkers = new Map<
@@ -215,15 +219,22 @@ async function loadGarages() {
     // The map may have been removed while the request was running
     if (map === target) {
       updateGarageMarkers(target, garages);
-      garagesLoaded = true;
+      garagesLoadedAt = Date.now();
+      garagesLoadErrorShown = false;
     }
   } catch (error) {
     console.debug(error);
-    // Failed refreshes keep the last counts, which turn gray once they are outdated
-    if (!garagesLoaded && !garagesLoadErrorShown) {
+    // Failed refreshes keep the last counts, the user is only told once they are outdated
+    const lastCountsOutdated =
+      garagesLoadedAt === undefined ||
+      Date.now() - garagesLoadedAt > GARAGE_DATA_MAX_AGE_MS;
+    if (lastCountsOutdated && !garagesLoadErrorShown) {
       garagesLoadErrorShown = true;
       snackbarStore.push({
-        text: t("components.theMap.garagesLoadError"),
+        text:
+          garagesLoadedAt === undefined
+            ? t("components.theMap.garagesLoadError")
+            : t("components.theMap.garagesRefreshError"),
         color: STATUS_INDICATORS.ERROR,
       });
     }
