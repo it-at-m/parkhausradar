@@ -44,6 +44,10 @@ const [minLon, minLat, maxLon, maxLat] = basemap.bbox as [
   number,
   number,
 ];
+// Old town, where the garages of the parking guidance system are located
+const INITIAL_BOUNDS: [number, number, number, number] = [
+  11.555, 48.128, 11.595, 48.148,
+];
 
 const { t } = useI18n();
 const theme = useTheme();
@@ -120,7 +124,7 @@ onMounted(async () => {
     map = new MapLibreMap({
       container: mapContainer.value,
       style: currentStyle(),
-      bounds: [minLon, minLat, maxLon, maxLat],
+      bounds: INITIAL_BOUNDS,
       maxBounds: [minLon, minLat, maxLon, maxLat],
       maxZoom: 18,
       attributionControl: { compact: true },
