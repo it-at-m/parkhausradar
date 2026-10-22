@@ -5,6 +5,8 @@
       "loadError": "The map could not be loaded.",
       "garage": "{name}: {free} of {capacity} free",
       "garageOutdated": "{name}: {free} of {capacity} free, outdated",
+      "garageWithoutCapacity": "{name}: {free} free",
+      "garageWithoutCapacityOutdated": "{name}: {free} free, outdated",
       "garageWithoutData": "{name}: no data",
       "garagesLoadError": "The parking garages could not be loaded.",
       "garagesRefreshError": "The occupancy could not be updated."

@@ -1,6 +1,9 @@
+import type { VueWrapper } from "@vue/test-utils";
+
 import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { nextTick } from "vue";
+import { VDialog, VSnackbar } from "vuetify/components";
 
 import type { Garage } from "../../src/types/Garage";
 
@@ -12,6 +15,8 @@ const NOW = new Date("2026-10-21T12:00:00Z");
 const MINUTE = 60_000;
 const DESKTOP_WIDTH = 1024;
 const MOBILE_WIDTH = 375;
+
+let overlay: VueWrapper | undefined;
 
 function createGarage(overrides: Partial<Garage> = {}): Garage {
   return {
@@ -58,6 +63,9 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+  overlay?.unmount();
+  overlay = undefined;
+  vi.unstubAllGlobals();
   vi.useRealTimers();
   document.body.innerHTML = "";
   await setScreenWidth(DESKTOP_WIDTH);
@@ -205,6 +213,37 @@ describe("GarageDetails closing", () => {
     // then
     expect(wrapper.emitted("close")).toHaveLength(1);
   });
+
+  test.for([
+    { overlay: "dialog", component: VDialog, closes: false },
+    { overlay: "snackbar", component: VSnackbar, closes: true },
+  ])(
+    "Escape with an open $overlay closes the details: $closes",
+    async ({ component, closes }) => {
+      // given
+      // jsdom lacks the viewport API Vuetify uses to position overlays
+      vi.stubGlobal("visualViewport", {
+        width: DESKTOP_WIDTH,
+        height: 768,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      });
+      overlay = mount(component, {
+        props: { modelValue: true },
+        slots: { default: "Overlay" },
+        attachTo: document.body,
+        global: { plugins: [vuetify] },
+      });
+      await nextTick();
+      const wrapper = mountDetails(createGarage());
+
+      // when
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+
+      // then
+      expect(wrapper.emitted("close") !== undefined).toBe(closes);
+    }
+  );
 
   test.for([
     { screen: "mobile", width: MOBILE_WIDTH, distance: 120, closes: true },

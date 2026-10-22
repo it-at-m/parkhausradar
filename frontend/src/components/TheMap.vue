@@ -124,15 +124,20 @@ function currentStyle() {
 }
 
 function garageText(garage: Garage): string {
-  if (!garage.freeSpaces || !garage.capacity) {
+  if (!garage.freeSpaces) {
     return t("components.theMap.garageWithoutData", { name: garage.name });
   }
-  const values = {
-    name: garage.name,
-    free: garage.freeSpaces.value,
-    capacity: garage.capacity.value,
-  };
-  return isGarageDataOutdated(garage, now.value)
+  const outdated = isGarageDataOutdated(garage, now.value);
+  const name = garage.name;
+  const free = garage.freeSpaces.value;
+  // The marker shows the free spaces even without a capacity, so they have to be announced as well
+  if (!garage.capacity) {
+    return outdated
+      ? t("components.theMap.garageWithoutCapacityOutdated", { name, free })
+      : t("components.theMap.garageWithoutCapacity", { name, free });
+  }
+  const values = { name, free, capacity: garage.capacity.value };
+  return outdated
     ? t("components.theMap.garageOutdated", values)
     : t("components.theMap.garage", values);
 }

@@ -5,6 +5,8 @@
       "loadError": "Die Karte konnte nicht geladen werden.",
       "garage": "{name}: {free} von {capacity} frei",
       "garageOutdated": "{name}: {free} von {capacity} frei, Stand veraltet",
+      "garageWithoutCapacity": "{name}: {free} frei",
+      "garageWithoutCapacityOutdated": "{name}: {free} frei, Stand veraltet",
       "garageWithoutData": "{name}: keine Daten",
       "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden.",
       "garagesRefreshError": "Die Belegung konnte nicht aktualisiert werden."
