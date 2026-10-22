@@ -4,6 +4,7 @@
     class="the-map"
     role="region"
     :aria-label="t('components.theMap.label')"
+    :style="{ '--map-bottom-inset': `${inset.bottom}px` }"
   />
 </template>
 
@@ -12,26 +13,49 @@ import type { Garage } from "@/types/Garage";
 import type { MapTheme } from "@/util/mapStyle";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 
+import { useDocumentVisibility, useIntervalFn, useNow } from "@vueuse/core";
 import {
   addProtocol,
   Map as MapLibreMap,
   Marker,
-  Popup,
   setWorkerUrl,
 } from "maplibre-gl";
 import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { Protocol } from "pmtiles";
-import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import {
+  h,
+  onBeforeUnmount,
+  onMounted,
+  render,
+  useTemplateRef,
+  watch,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import { useTheme } from "vuetify";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { getGarages } from "@/api/garages-client";
+import GarageMarker, {
+  GARAGE_MARKER_SHADOW_HEIGHT,
+} from "@/components/GarageMarker.vue";
 import { STATUS_INDICATORS } from "@/constants";
 import { useSnackbarStore } from "@/stores/snackbar";
+import { getGarageStatus, isGarageDataOutdated } from "@/util/garageStatus";
 import { createMapStyle } from "@/util/mapStyle";
 import basemap from "../../basemap.json";
+
+const props = defineProps<{
+  /**
+   * Space covered by content along the left and bottom edge of the map,
+   * the selected garage is centered in the remaining area
+   */
+  inset: { left: number; bottom: number };
+}>();
+
+const selectedGarage = defineModel<Garage | null>("selectedGarage", {
+  required: true,
+});
 
 // MapLibre derives its worker URL at runtime, which bundlers cannot follow
 setWorkerUrl(maplibreWorkerUrl);
@@ -48,15 +72,30 @@ const [minLon, minLat, maxLon, maxLat] = basemap.bbox as [
 const INITIAL_BOUNDS: [number, number, number, number] = [
   11.555, 48.128, 11.595, 48.148,
 ];
+// Close enough to tell the streets around a garage apart, the map never zooms out on selection
+const SELECTED_GARAGE_MIN_ZOOM = 15;
+// The collector writes new counts once a minute, polling more often would not show newer data
+const GARAGE_REFRESH_INTERVAL_MS = 60_000;
 
 const { t } = useI18n();
 const theme = useTheme();
 const snackbarStore = useSnackbarStore();
 const mapContainer = useTemplateRef("mapContainer");
+// Markers turn gray once their data is outdated, even if no new data arrives
+const now = useNow({
+  scheduler: (callback) => useIntervalFn(callback, 30_000),
+});
 
 let map: MapLibreMap | undefined;
 let cityBoundary: Feature<Polygon | MultiPolygon> | undefined;
 let loadErrorShown = false;
+let garagesLoaded = false;
+let garagesLoadErrorShown = false;
+let garagesLoading = false;
+const garageMarkers = new Map<
+  string,
+  { garage: Garage; marker: Marker; container: HTMLElement }
+>();
 
 // Failing tile requests raise one error per tile, the user only needs to be told once
 function showLoadError(error: unknown) {
@@ -84,28 +123,138 @@ function garageText(garage: Garage): string {
   if (!garage.freeSpaces || !garage.capacity) {
     return t("components.theMap.garageWithoutData", { name: garage.name });
   }
-  return t("components.theMap.garage", {
+  const values = {
     name: garage.name,
     free: garage.freeSpaces.value,
     capacity: garage.capacity.value,
-  });
+  };
+  return isGarageDataOutdated(garage, now.value)
+    ? t("components.theMap.garageOutdated", values)
+    : t("components.theMap.garage", values);
 }
 
-async function showGarages(target: MapLibreMap) {
+function renderGarageMarker(garage: Garage) {
+  const selected = selectedGarage.value?.pNumber === garage.pNumber;
+  const container = garageMarkers.get(garage.pNumber)?.container;
+  if (!container) {
+    return;
+  }
+  render(
+    h(GarageMarker, {
+      label: garageText(garage),
+      freeSpaces: garage.freeSpaces?.value ?? null,
+      status: getGarageStatus(garage, now.value),
+      selected,
+      onClick: () => (selectedGarage.value = garage),
+    }),
+    container
+  );
+  // Brings the selected marker in front of its neighbours
+  container.style.zIndex = selected ? "1" : "";
+}
+
+function addGarageMarker(target: MapLibreMap, garage: Garage) {
+  // MapLibre positions the container via its transform, the marker inside stays free to use its own
+  const container = document.createElement("div");
+  const marker = new Marker({
+    element: container,
+    anchor: "bottom",
+    offset: [0, GARAGE_MARKER_SHADOW_HEIGHT / 2],
+  })
+    .setLngLat(garage.location)
+    .addTo(target);
+  garageMarkers.set(garage.pNumber, { garage, marker, container });
+  renderGarageMarker(garage);
+}
+
+function removeGarageMarker(pNumber: string) {
+  const entry = garageMarkers.get(pNumber);
+  if (entry) {
+    render(null, entry.container);
+    entry.marker.remove();
+    garageMarkers.delete(pNumber);
+  }
+}
+
+function updateGarageMarkers(target: MapLibreMap, garages: Garage[]) {
+  const pNumbers = new Set(garages.map((garage) => garage.pNumber));
+  for (const pNumber of [...garageMarkers.keys()]) {
+    if (!pNumbers.has(pNumber)) {
+      removeGarageMarker(pNumber);
+    }
+  }
+  // Southern markers are added last, so they overlap the markers behind them
+  const southernmostLast = [...garages].sort(
+    (a, b) => b.location[1] - a.location[1]
+  );
+  for (const garage of southernmostLast) {
+    const entry = garageMarkers.get(garage.pNumber);
+    if (entry) {
+      entry.garage = garage;
+      entry.marker.setLngLat(garage.location);
+      renderGarageMarker(garage);
+    } else {
+      addGarageMarker(target, garage);
+    }
+  }
+  // Shows the new counts in the details, a garage that disappeared closes them
+  if (selectedGarage.value) {
+    selectedGarage.value =
+      garageMarkers.get(selectedGarage.value.pNumber)?.garage ?? null;
+  }
+}
+
+async function loadGarages() {
+  const target = map;
+  if (!target || garagesLoading) {
+    return;
+  }
+  garagesLoading = true;
   try {
-    for (const garage of await getGarages()) {
-      new Marker()
-        .setLngLat(garage.location)
-        .setPopup(new Popup().setText(garageText(garage)))
-        .addTo(target);
+    const garages = await getGarages();
+    // The map may have been removed while the request was running
+    if (map === target) {
+      updateGarageMarkers(target, garages);
+      garagesLoaded = true;
     }
   } catch (error) {
     console.debug(error);
-    snackbarStore.push({
-      text: t("components.theMap.garagesLoadError"),
-      color: STATUS_INDICATORS.ERROR,
-    });
+    // Failed refreshes keep the last counts, which turn gray once they are outdated
+    if (!garagesLoaded && !garagesLoadErrorShown) {
+      garagesLoadErrorShown = true;
+      snackbarStore.push({
+        text: t("components.theMap.garagesLoadError"),
+        color: STATUS_INDICATORS.ERROR,
+      });
+    }
+  } finally {
+    garagesLoading = false;
   }
+}
+
+// Hidden tabs do not poll, they catch up as soon as they are visible again
+const visibility = useDocumentVisibility();
+const garageRefresh = useIntervalFn(loadGarages, GARAGE_REFRESH_INTERVAL_MS, {
+  immediate: false,
+});
+watch(visibility, (state) => {
+  if (state === "visible") {
+    loadGarages();
+    garageRefresh.resume();
+  } else {
+    garageRefresh.pause();
+  }
+});
+
+function showSelectedGarage() {
+  if (!map || !selectedGarage.value) {
+    return;
+  }
+  map.easeTo({
+    center: selectedGarage.value.location,
+    zoom: Math.max(map.getZoom(), SELECTED_GARAGE_MIN_ZOOM),
+    offset: [props.inset.left / 2, -props.inset.bottom / 2],
+  });
 }
 
 async function fetchCityBoundary(): Promise<Feature<Polygon | MultiPolygon>> {
@@ -130,11 +279,22 @@ onMounted(async () => {
       attributionControl: { compact: true },
     });
     map.on("error", ({ error }) => showLoadError(error));
+    map.on("click", ({ originalEvent }) => {
+      const target = originalEvent.target;
+      if (!(
+        target instanceof Element && target.closest(".maplibregl-marker")
+      )) {
+        selectedGarage.value = null;
+      }
+    });
   } catch (error) {
     showLoadError(error);
     return;
   }
-  showGarages(map);
+  loadGarages();
+  if (visibility.value === "visible") {
+    garageRefresh.resume();
+  }
 
   // The boundary only dims the surroundings, so the map stays usable without it
   try {
@@ -146,11 +306,55 @@ onMounted(async () => {
 });
 
 watch(
+  selectedGarage,
+  (garage, previousGarage) => {
+    // Refreshed counts of the same garage neither move the map nor the focus
+    if (garage?.pNumber === previousGarage?.pNumber) {
+      return;
+    }
+    if (previousGarage) {
+      renderGarageMarker(previousGarage);
+    }
+    if (garage) {
+      renderGarageMarker(garage);
+      showSelectedGarage();
+      return;
+    }
+    // Keyboard users closing the details continue at the marker instead of the start of the page
+    const focused = document.activeElement;
+    if (
+      previousGarage &&
+      (!focused ||
+        focused === document.body ||
+        focused.closest("[data-garage-details]"))
+    ) {
+      garageMarkers
+        .get(previousGarage.pNumber)
+        ?.container.querySelector("button")
+        ?.focus({ preventScroll: true });
+    }
+  },
+  { flush: "post" }
+);
+
+watch(now, () => {
+  for (const { garage } of garageMarkers.values()) {
+    renderGarageMarker(garage);
+  }
+});
+
+// The details are measured after they are shown, so the map adjusts once their height is known
+watch(() => [props.inset.left, props.inset.bottom], showSelectedGarage);
+
+watch(
   () => theme.global.current.value.dark,
   () => map?.setStyle(currentStyle())
 );
 
 onBeforeUnmount(() => {
+  for (const pNumber of [...garageMarkers.keys()]) {
+    removeGarageMarker(pNumber);
+  }
   map?.remove();
   map = undefined;
 });
@@ -162,8 +366,15 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-/* MapLibre popups are always white, but would inherit the light text color of the dark theme */
-.the-map :deep(.maplibregl-popup-content) {
-  color: rgba(0, 0, 0, 0.87);
+/* The attribution has to stay visible above content covering the bottom of the map */
+.the-map :deep(.maplibregl-ctrl-bottom-right) {
+  bottom: var(--map-bottom-inset);
+  transition: bottom 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .the-map :deep(.maplibregl-ctrl-bottom-right) {
+    transition: none;
+  }
 }
 </style>
