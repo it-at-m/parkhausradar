@@ -247,6 +247,47 @@ describe("TheMap garages", () => {
     expect(markerLabels()).toEqual(["Oper: 290 von 400 frei"]);
   });
 
+  test.for([
+    {
+      case: "without capacity",
+      garage: { ...OPER, capacity: null },
+      label: "Oper: 312 frei",
+    },
+    {
+      case: "with outdated counts without capacity",
+      garage: {
+        ...OPER,
+        capacity: null,
+        freeSpaces: {
+          value: 312,
+          measuredAt: new Date(NOW.getTime() - 20 * MINUTE),
+        },
+      },
+      label: "Oper: 312 frei, Stand veraltet",
+    },
+    {
+      case: "without any counts",
+      garage: { ...OPER, freeSpaces: null, capacity: null },
+      label: "Oper: keine Daten",
+    },
+  ])(
+    "announces what the marker of a garage $case shows",
+    async ({ garage, label }) => {
+      // given
+      vi.mocked(getGarages).mockResolvedValue([garage]);
+
+      // when
+      await mountMap();
+
+      // then
+      const marker = findMarker("Oper");
+      expect(marker.getAttribute("aria-label")).toBe(label);
+      expect(marker.querySelector(".free-spaces")?.textContent).toBe(
+        garage.freeSpaces ? "312" : "?"
+      );
+    }
+  );
+
   test("describes outdated counts", async () => {
     // given
     await mountMap();

@@ -217,8 +217,17 @@ function cancelDrag() {
   dragOffset.value = null;
 }
 
+// Vuetify closes its own overlays on Escape too, so one press must only close the topmost layer
+function isOverlayOpen(): boolean {
+  return (
+    document.querySelector(
+      ".v-overlay--active:not(.v-snackbar):not(.v-tooltip)"
+    ) !== null
+  );
+}
+
 useEventListener(document, "keydown", (event: KeyboardEvent) => {
-  if (event.key === "Escape") {
+  if (event.key === "Escape" && !isOverlayOpen()) {
     emit("close");
   }
 });

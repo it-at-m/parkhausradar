@@ -75,11 +75,17 @@ const button = useTemplateRef("button");
 // Read by screen readers, as the visible content is only a number
 const label = computed(() => {
   const { name, freeSpaces, capacity } = props.garage;
-  if (!freeSpaces || !capacity) {
+  if (!freeSpaces) {
     return t("components.theMap.garageWithoutData", { name });
   }
   const outdated = isGarageDataOutdated(props.garage, props.now);
-  const values = { name, free: freeSpaces.value, capacity: capacity.value };
+  const free = freeSpaces.value;
+  if (!capacity) {
+    return outdated
+      ? t("components.theMap.garageWithoutCapacityOutdated", { name, free })
+      : t("components.theMap.garageWithoutCapacity", { name, free });
+  }
+  const values = { name, free, capacity: capacity.value };
   return outdated
     ? t("components.theMap.garageOutdated", values)
     : t("components.theMap.garage", values);
