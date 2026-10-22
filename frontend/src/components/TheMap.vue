@@ -388,6 +388,35 @@ onBeforeUnmount(() => {
   transition: bottom 150ms ease;
 }
 
+/* MapLibre styles the attribution white with a black icon, which glares on the dark map, the border matches the settings button */
+.the-map :deep(.maplibregl-ctrl-attrib.maplibregl-compact) {
+  border: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+  background-color: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.the-map :deep(.maplibregl-ctrl-attrib a) {
+  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+}
+
+/* The icon is a black background image, as a mask it takes the text color instead */
+.the-map :deep(.maplibregl-ctrl-attrib-button) {
+  background-image: none;
+}
+
+.the-map :deep(.maplibregl-ctrl-attrib-button::before) {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M4%2010a6%206%200%201%200%2012%200%206%206%200%201%200-12%200m5-3a1%201%200%201%200%202%200%201%201%200%201%200-2%200m0%203a1%201%200%201%201%202%200v3a1%201%200%201%201-2%200%22%2F%3E%3C%2Fsvg%3E")
+    center / contain no-repeat;
+}
+
+.the-map :deep(.maplibregl-compact-show .maplibregl-ctrl-attrib-button) {
+  background-color: rgba(var(--v-theme-on-surface), var(--v-hover-opacity));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .the-map :deep(.maplibregl-ctrl-bottom-right) {
     transition: none;
