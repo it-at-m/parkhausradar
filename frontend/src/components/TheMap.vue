@@ -17,18 +17,51 @@
       @select="selectedGarage = garage"
     />
   </template>
+  <!-- Bound to the loading state instead of the snackbar queue, so it disappears once loading works again -->
+  <v-snackbar
+    v-model="garagesErrorShown"
+    data-test="garages-error"
+    :color="STATUS_INDICATORS.ERROR"
+    :timeout="-1"
+  >
+    <v-layout class="align-center">
+      <v-icon
+        class="mr-3"
+        size="25"
+        :icon="mdiAlertCircleOutline"
+      />
+      <p class="my-0 text-body-large">{{ garagesErrorText }}</p>
+    </v-layout>
+    <template #actions>
+      <v-btn
+        data-test="garages-error-dismiss-btn"
+        :text="t('components.theMap.dismissGaragesError')"
+        @click="garagesErrorShown = false"
+      />
+    </template>
+  </v-snackbar>
 </template>
 
 <script setup lang="ts">
+import type { GaragesError } from "@/composables/useGarages";
 import type { Garage } from "@/types/Garage";
 import type { MapTheme } from "@/util/mapStyle";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 
+import { mdiAlertCircleOutline } from "@mdi/js";
 import { useIntervalFn, useNow } from "@vueuse/core";
 import { addProtocol, Map as MapLibreMap, setWorkerUrl } from "maplibre-gl";
 import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { Protocol } from "pmtiles";
-import { onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from "vue";
+import {
+  computed,
+  onMounted,
+  onUnmounted,
+  ref,
+  shallowRef,
+  useTemplateRef,
+  watch,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import { useTheme } from "vuetify";
 
@@ -75,7 +108,15 @@ const { t } = useI18n();
 const theme = useTheme();
 const snackbarStore = useSnackbarStore();
 const mapContainer = useTemplateRef("mapContainer");
-const { garages } = useGarages();
+const { garages, error: garagesError } = useGarages();
+// Closed by the user until another error occurs, the text is kept while the snackbar fades out
+const garagesErrorShown = ref(false);
+const lastGaragesError = ref<GaragesError>("load");
+const garagesErrorText = computed(() =>
+  lastGaragesError.value === "load"
+    ? t("components.theMap.garagesLoadError")
+    : t("components.theMap.garagesRefreshError")
+);
 // Markers turn gray once their data is outdated, even if no new data arrives
 const now = useNow({
   scheduler: (callback) => useIntervalFn(callback, 30_000),
@@ -161,6 +202,13 @@ onMounted(async () => {
     map.value?.setStyle(currentStyle());
   } catch (error) {
     console.debug(error);
+  }
+});
+
+watch(garagesError, (error) => {
+  garagesErrorShown.value = error !== null;
+  if (error) {
+    lastGaragesError.value = error;
   }
 });
 

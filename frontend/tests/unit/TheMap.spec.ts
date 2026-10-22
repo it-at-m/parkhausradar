@@ -10,7 +10,6 @@ import { getGarages } from "../../src/api/garages-client";
 import TheMap from "../../src/components/TheMap.vue";
 import i18n from "../../src/plugins/i18n";
 import vuetify from "../../src/plugins/vuetify";
-import { useSnackbarStore } from "../../src/stores/snackbar";
 
 // MapLibre needs WebGL, so the map is replaced by a stand-in that only keeps what the component uses
 const { maps } = vi.hoisted(() => ({ maps: [] as FakeMap[] }));
@@ -87,6 +86,8 @@ vi.mock("../../src/api/garages-client", () => ({ getGarages: vi.fn() }));
 
 const NOW = new Date("2026-10-22T12:00:00Z");
 const MINUTE = 60_000;
+const LOAD_ERROR = "Die Parkhäuser konnten nicht geladen werden.";
+const REFRESH_ERROR = "Die Belegung konnte nicht aktualisiert werden.";
 
 let wrapper: VueWrapper | undefined;
 
@@ -161,6 +162,13 @@ async function advance(milliseconds: number) {
   await flushPromises();
 }
 
+function shownGaragesError(): string | null {
+  return (
+    document.querySelector(".v-snackbar.v-overlay--active p")?.textContent ??
+    null
+  );
+}
+
 function setVisibility(state: DocumentVisibilityState) {
   Object.defineProperty(document, "visibilityState", {
     configurable: true,
@@ -183,6 +191,21 @@ beforeEach(() => {
     vi.fn().mockResolvedValue(new Response(null, { status: 404 }))
   );
   vi.mocked(getGarages).mockResolvedValue([OPER, PSCHORR]);
+  // jsdom lacks the browser APIs Vuetify uses to position the snackbar
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+    }
+  );
+  vi.stubGlobal("visualViewport", {
+    width: 1024,
+    height: 768,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  });
 });
 
 afterEach(() => {
@@ -338,35 +361,72 @@ describe("TheMap refresh", () => {
     expect(getGarages).toHaveBeenCalledTimes(2);
   });
 
-  test("reports a failed first load and shows the garages once loading works again", async () => {
+  test("reports a failed first load and hides the error once loading works again", async () => {
     // given
     vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+    await mountMap();
+    const errorWhileFailing = shownGaragesError();
 
     // when
-    await mountMap();
     vi.mocked(getGarages).mockResolvedValue([OPER]);
     await advance(MINUTE);
 
     // then
-    expect(useSnackbarStore().queue.map((message) => message.text)).toEqual([
-      "Die Parkhäuser konnten nicht geladen werden.",
-    ]);
+    expect(errorWhileFailing).toBe(LOAD_ERROR);
+    expect(shownGaragesError()).toBeNull();
     expect(markerLabels()).toEqual(["Oper: 312 von 400 frei"]);
   });
 
-  test("keeps the last counts without reporting failed refreshes", async () => {
+  test("keeps the last counts and reports failed refreshes once they are outdated", async () => {
     // given
     await mountMap();
     vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+    await advance(15 * MINUTE);
+    const errorWhileCurrent = shownGaragesError();
+    const labelsWhileCurrent = markerLabels().sort();
 
     // when
-    await advance(3 * MINUTE);
+    await advance(5 * MINUTE);
 
     // then
-    expect(useSnackbarStore().queue).toHaveLength(0);
-    expect(markerLabels().sort()).toEqual([
+    expect(errorWhileCurrent).toBeNull();
+    expect(labelsWhileCurrent).toEqual([
       "Oper: 312 von 400 frei",
       "Pschorr: 120 von 400 frei",
     ]);
+    expect(shownGaragesError()).toBe(REFRESH_ERROR);
+  });
+
+  test("reports refreshes failing again after they had recovered", async () => {
+    // given
+    await mountMap();
+    vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+    await advance(16 * MINUTE);
+    vi.mocked(getGarages).mockResolvedValue([OPER, PSCHORR]);
+    await advance(MINUTE);
+    const errorAfterRecovery = shownGaragesError();
+    vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+
+    // when
+    await advance(16 * MINUTE);
+
+    // then
+    expect(errorAfterRecovery).toBeNull();
+    expect(shownGaragesError()).toBe(REFRESH_ERROR);
+  });
+
+  test("keeps a dismissed error closed while loading keeps failing", async () => {
+    // given
+    vi.mocked(getGarages).mockRejectedValue(new Error("unavailable"));
+    await mountMap();
+
+    // when
+    document
+      .querySelector<HTMLElement>("[data-test=garages-error-dismiss-btn]")
+      ?.click();
+    await advance(3 * MINUTE);
+
+    // then
+    expect(shownGaragesError()).toBeNull();
   });
 });
