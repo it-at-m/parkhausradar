@@ -64,6 +64,7 @@ jobs:
         run: |
           uv sync --locked
           uv run ruff check .
+          uv run ruff format --check .
           uv run pytest
           echo "artifact-name=collector" >> "$GITHUB_OUTPUT"
       # The image build expects a build artifact, the collector has nothing to build

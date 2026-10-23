@@ -93,7 +93,7 @@ The garages, keyed by P-Number, live in `collector/garages.json` and are version
 
 `address` and `operatorUrl` may be `null`. A failed run is logged and repeated a minute later, starting again with step 1, so the collector also recovers after FROST was unavailable or reset.
 
-The collector writes directly to FROST, configured by `FROST_URL` (e.g. `http://frost:8080/FROST-Server/v1.1`). Run the tests in `collector/` with `uv run pytest` and the linter with `uv run ruff check`. The CI runs both and builds the image `collector:dev` on `main`, like for the frontend.
+The collector writes directly to FROST, configured by `FROST_URL` (e.g. `http://frost:8080/FROST-Server/v1.1`). Run the tests in `collector/` with `uv run pytest` the linter with `uv run ruff check` and the formatter with `uv run ruff format`. The CI runs all three and builds the image `collector:dev` on `main`, like for the frontend. The image is based on the Python image of Red Hat and contains no uv, so building it downloads nothing besides the base image.
 
 ### Basemap
 
