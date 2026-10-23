@@ -10,10 +10,13 @@ import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 import VueRouter from "vue-router/vite";
 
 import { EncodeBracketsPlugin, extendRoute } from "./encode-brackets-plugin.ts";
+import { FrostSimulatorPlugin } from "./simulator/plugin.ts";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const isDevelopment = mode === "development";
+  // "development" answers FROST requests with simulated data, "stack" uses the local stack behind the gateway
+  const useSimulation = mode === "development";
+  const isDevelopment = useSimulation || mode === "stack";
   return {
     plugins: [
       VueRouter({
@@ -56,6 +59,7 @@ export default defineConfig(({ mode }) => {
         ...EncodeBracketsPlugin(),
         apply: "serve", // Ensures plugin is only applied during serve, see https://vite.dev/guide/using-plugins#conditional-application
       },
+      useSimulation && FrostSimulatorPlugin(),
     ],
     server: {
       host: true,

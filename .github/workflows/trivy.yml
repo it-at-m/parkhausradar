@@ -32,6 +32,7 @@ jobs:
       with:
         filters: |
           frontend: frontend/**
+          collector: collector/**
     - run: |
         echo ${{ toJSON(steps.filter.outputs.changes) }}
         

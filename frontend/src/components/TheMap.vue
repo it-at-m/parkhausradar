@@ -8,10 +8,17 @@
 </template>
 
 <script setup lang="ts">
+import type { Garage } from "@/types/Garage";
 import type { MapTheme } from "@/util/mapStyle";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 
-import { addProtocol, Map as MapLibreMap, setWorkerUrl } from "maplibre-gl";
+import {
+  addProtocol,
+  Map as MapLibreMap,
+  Marker,
+  Popup,
+  setWorkerUrl,
+} from "maplibre-gl";
 import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { Protocol } from "pmtiles";
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
@@ -20,6 +27,7 @@ import { useTheme } from "vuetify";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
+import { getGarages } from "@/api/garages-client";
 import { STATUS_INDICATORS } from "@/constants";
 import { useSnackbarStore } from "@/stores/snackbar";
 import { createMapStyle } from "@/util/mapStyle";
@@ -68,6 +76,34 @@ function currentStyle() {
   });
 }
 
+function garageText(garage: Garage): string {
+  if (!garage.freeSpaces || !garage.capacity) {
+    return t("components.theMap.garageWithoutData", { name: garage.name });
+  }
+  return t("components.theMap.garage", {
+    name: garage.name,
+    free: garage.freeSpaces.value,
+    capacity: garage.capacity.value,
+  });
+}
+
+async function showGarages(target: MapLibreMap) {
+  try {
+    for (const garage of await getGarages()) {
+      new Marker()
+        .setLngLat(garage.location)
+        .setPopup(new Popup().setText(garageText(garage)))
+        .addTo(target);
+    }
+  } catch (error) {
+    console.debug(error);
+    snackbarStore.push({
+      text: t("components.theMap.garagesLoadError"),
+      color: STATUS_INDICATORS.ERROR,
+    });
+  }
+}
+
 async function fetchCityBoundary(): Promise<Feature<Polygon | MultiPolygon>> {
   const response = await fetch(`${ASSET_BASE_URL}muenchen-grenze.geojson`);
   if (!response.ok) {
@@ -94,6 +130,7 @@ onMounted(async () => {
     showLoadError(error);
     return;
   }
+  showGarages(map);
 
   // The boundary only dims the surroundings, so the map stays usable without it
   try {
@@ -119,5 +156,10 @@ onBeforeUnmount(() => {
 .the-map {
   width: 100%;
   height: 100%;
+}
+
+/* MapLibre popups are always white, but would inherit the light text color of the dark theme */
+.the-map :deep(.maplibregl-popup-content) {
+  color: rgba(0, 0, 0, 0.87);
 }
 </style>

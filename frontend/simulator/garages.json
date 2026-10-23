@@ -1,0 +1,72 @@
+[
+  {
+    "pNumber": "P3",
+    "name": "Testparkhaus Nord",
+    "capacity": 314,
+    "location": [11.57519, 48.142269],
+    "entrances": [[11.57519, 48.142269]]
+  },
+  {
+    "pNumber": "P6",
+    "name": "Testgarage Süd",
+    "capacity": 150,
+    "location": [11.57395181200344, 48.13424935024725],
+    "entrances": [[11.57395181200344, 48.13424935024725]]
+  },
+  {
+    "pNumber": "P8",
+    "name": "Testparkhaus Mitte",
+    "capacity": 160,
+    "location": [11.570128, 48.137325],
+    "entrances": [[11.570128, 48.137325]]
+  },
+  {
+    "pNumber": "P9",
+    "name": "Testtiefgarage Einkaufsstraße (Einfahrt West)",
+    "capacity": 357,
+    "location": [11.56757, 48.138771],
+    "entrances": [[11.56757, 48.138771]]
+  },
+  {
+    "pNumber": "P14",
+    "name": "Testparkhaus Grünanlage",
+    "capacity": 393,
+    "location": [11.569986, 48.134029],
+    "entrances": [[11.569986, 48.134029]]
+  },
+  {
+    "pNumber": "P15",
+    "name": "Testgarage Ost",
+    "capacity": 423,
+    "location": [11.584083168162554, 48.13711490430454],
+    "entrances": [[11.584083168162554, 48.13711490430454]]
+  },
+  {
+    "pNumber": "P17",
+    "name": "Testtiefgarage Mühlplatz",
+    "capacity": 275,
+    "location": [11.57764, 48.14049],
+    "entrances": [[11.57764, 48.14049]]
+  },
+  {
+    "pNumber": "P18",
+    "name": "Testparkhaus Färberei",
+    "capacity": 350,
+    "location": [11.571501, 48.1372976],
+    "entrances": [[11.571501, 48.1372976]]
+  },
+  {
+    "pNumber": "P22",
+    "name": "Testgarage am Fluss",
+    "capacity": 140,
+    "location": [11.5810631, 48.1330593],
+    "entrances": [[11.5810631, 48.1330593]]
+  },
+  {
+    "pNumber": "P24",
+    "name": "Testparkhaus Bahnhof Süd",
+    "capacity": 197,
+    "location": [11.560030468152496, 48.13857307282762],
+    "entrances": [[11.560030468152496, 48.13857307282762]]
+  }
+]
