@@ -16,7 +16,19 @@ export async function getGarages(): Promise<Garage[]> {
   );
   defaultResponseHandler(response, "Parkhäuser konnten nicht geladen werden.");
   const collection: FrostCollection<FrostThing> = await response.json();
-  return collection.value.map(toGarage);
+  return toGarages(collection.value);
+}
+
+export function toGarages(things: FrostThing[]): Garage[] {
+  const garages: Garage[] = [];
+  for (const thing of things) {
+    try {
+      garages.push(toGarage(thing));
+    } catch (error) {
+      console.debug(error);
+    }
+  }
+  return garages;
 }
 
 /**

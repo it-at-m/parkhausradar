@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import type {
   DatastreamType,
@@ -6,7 +6,7 @@ import type {
   LocationType,
 } from "../../src/api/frost";
 
-import { toGarage } from "../../src/api/garages-client";
+import { toGarage, toGarages } from "../../src/api/garages-client";
 
 function thing(overrides: Partial<FrostThing> = {}): FrostThing {
   return {
@@ -186,5 +186,28 @@ describe("toGarage", () => {
     expect(() => toGarage(invalidTime)).toThrow(
       "P3: freeSpaces has the invalid phenomenonTime yesterday"
     );
+  });
+});
+
+describe("toGarages", () => {
+  test("skips an invalid thing and keeps the valid ones", () => {
+    // given
+    const debug = vi.spyOn(console, "debug").mockReturnValue(undefined);
+    const valid = thing();
+    const invalid = thing({
+      name: "P4 Testparkhaus Süd",
+      properties: { pNumber: "P4", address: null, operatorUrl: null },
+      Datastreams: [],
+    });
+
+    // when
+    const garages = toGarages([invalid, valid]);
+
+    // then
+    expect(garages.map((g) => g.pNumber)).toEqual(["P3"]);
+    expect(debug).toHaveBeenCalledWith(
+      new Error("P4: expected exactly one freeSpaces datastream, got 0")
+    );
+    debug.mockRestore();
   });
 });
