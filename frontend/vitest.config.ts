@@ -16,7 +16,8 @@ export default defineConfig((configEnv) =>
             inline: ["vuetify"],
           },
         },
-        fsModuleCache: true,
+        // Cached modules keep unplugin-vue-i18n's virtual locale ids, which only resolve in the process that created them
+        fsModuleCache: false,
       },
     })
   )

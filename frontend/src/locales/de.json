@@ -6,6 +6,20 @@
       "garage": "{name}: {free} von {capacity} frei",
       "garageWithoutData": "{name}: keine Daten",
       "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden."
+    },
+    "theSettings": {
+      "open": "Einstellungen öffnen",
+      "close": "Einstellungen schließen",
+      "title": "Einstellungen",
+      "appearance": "Darstellung",
+      "theme": {
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "System"
+      },
+      "language": "Sprache",
+      "systemLanguage": "Gerätesprache ({language})",
+      "sourceCode": "Quellcode auf GitHub"
     }
   }
 }
