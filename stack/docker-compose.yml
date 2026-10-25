@@ -1,0 +1,93 @@
+# Local development stack: collector writing to the FROST-Server behind the RefArch gateway, as in production.
+# Credentials in this file are for local development only.
+services:
+  postgis:
+    image: postgis/postgis:18-3.6-alpine@sha256:ffcf0c4b904e41b9779f8098007fb5a9484025319c18c70cf8e1bcebb742b9b7
+    environment:
+      POSTGRES_DB: sensorthings
+      POSTGRES_USER: sensorthings
+      POSTGRES_PASSWORD: local_password
+    volumes:
+      - postgis-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sensorthings -d sensorthings"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  frost:
+    image: fraunhoferiosb/frost-server-http:2.8.1@sha256:daa1672b9322ad379807f7cf27ef473450267d47cfb32776e1f4b0f7dae8d242
+    depends_on:
+      postgis:
+        condition: service_healthy
+    environment:
+      # Public base URL as seen through the gateway, used for the self links in responses
+      serviceRootUrl: http://localhost:8083/api/frost
+      persistence_db_driver: org.postgresql.Driver
+      persistence_db_url: jdbc:postgresql://postgis:5432/sensorthings
+      persistence_db_username: sensorthings
+      persistence_db_password: local_password
+      persistence_autoUpdateDatabase: "true"
+    ports:
+      # Direct access for debugging only. Writing is possible here, unlike through the gateway.
+      - "127.0.0.1:8080:8080"
+    healthcheck:
+      # Queries the database, so FROST counts as healthy only after it created its tables
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/FROST-Server/v1.1/Observations?$$top=0"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  frost-indexes:
+    image: postgis/postgis:18-3.6-alpine@sha256:ffcf0c4b904e41b9779f8098007fb5a9484025319c18c70cf8e1bcebb742b9b7
+    depends_on:
+      frost:
+        condition: service_healthy
+    environment:
+      PGHOST: postgis
+      PGDATABASE: sensorthings
+      PGUSER: sensorthings
+      PGPASSWORD: local_password
+    volumes:
+      - ./frost-indexes.sql:/frost-indexes.sql:ro
+    command: ["psql", "-v", "ON_ERROR_STOP=1", "-f", "/frost-indexes.sql"]
+
+  collector:
+    build: ../collector
+    depends_on:
+      frost:
+        condition: service_healthy
+    environment:
+      # Writes directly to FROST, the gateway only allows reading
+      FROST_URL: http://frost:8080/FROST-Server/v1.1
+
+  refarch-gateway:
+    image: ghcr.io/it-at-m/refarch/refarch-gateway:1.10.0@sha256:d74e6a31e2fe255989008fbf9a8d5e024bc01f418acf8c1852558e6925db9764
+    depends_on:
+      - frost
+    ports:
+      - "127.0.0.1:8083:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: no-security
+      ALLOWED_ORIGINS_PUBLIC: http://localhost:*
+      ALLOWED_ORIGINS_CLIENTS: http://localhost:*
+      # Read-only access to FROST: other methods do not match this route
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_ID: frost
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_URI: http://frost:8080/
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_PREDICATES_0: Path=/api/frost/**
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_PREDICATES_1: Method=GET,HEAD
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_FILTERS_0: RewritePath=/api/frost/(?<urlsegments>.*), /FROST-Server/$\{urlsegments}
+      # Rejects every other method on FROST explicitly instead of passing it on to the frontend route
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_ID: frost-read-only
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_URI: no://op
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_PREDICATES_0: Path=/api/frost/**
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_FILTERS_0: SetStatus=405
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_ID: frontend
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_URI: http://host.docker.internal:8081/
+      SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_PREDICATES_0: Path=/**
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ""
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  postgis-data:

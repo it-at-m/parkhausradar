@@ -1,0 +1,162 @@
+[
+  {
+    "pNumber": "P3",
+    "name": "Salvatorplatz",
+    "address": "Salvatorplatz",
+    "operatorUrl": null,
+    "location": [
+      11.574566804242702,
+      48.14226715163222
+    ],
+    "entrances": [
+      [
+        11.574566804242702,
+        48.14226715163222
+      ]
+    ]
+  },
+  {
+    "pNumber": "P6",
+    "name": "Schrannenhalle",
+    "address": "Prälat-Zistl-Straße 3",
+    "operatorUrl": null,
+    "location": [
+      11.57387705400834,
+      48.13408625120279
+    ],
+    "entrances": [
+      [
+        11.57387705400834,
+        48.13408625120279
+      ]
+    ]
+  },
+  {
+    "pNumber": "P8",
+    "name": "Pschorr",
+    "address": "Altheimer Eck 16",
+    "operatorUrl": null,
+    "location": [
+      11.569812331263554,
+      48.137691308371075
+    ],
+    "entrances": [
+      [
+        11.569956731808581,
+        48.13747769941879
+      ]
+    ]
+  },
+  {
+    "pNumber": "P9",
+    "name": "Oberpollinger",
+    "address": "Maxburgstraße 7",
+    "operatorUrl": null,
+    "location": [
+      11.568859299439804,
+      48.140070580834966
+    ],
+    "entrances": [
+      [
+        11.568859299439804,
+        48.140070580834966
+      ]
+    ]
+  },
+  {
+    "pNumber": "P14",
+    "name": "Oberanger",
+    "address": "Oberanger 27",
+    "operatorUrl": null,
+    "location": [
+      11.571280573646892,
+      48.134626749409605
+    ],
+    "entrances": [
+      [
+        11.571186792354805,
+        48.13474210870587
+      ]
+    ]
+  },
+  {
+    "pNumber": "P15",
+    "name": "Hofbräuhaus",
+    "address": "Thomas-Wimmer-Ring 9a",
+    "operatorUrl": null,
+    "location": [
+      11.584608900039248,
+      48.13667441935935
+    ],
+    "entrances": [
+      [
+        11.584608900039248,
+        48.13667441935935
+      ]
+    ]
+  },
+  {
+    "pNumber": "P17",
+    "name": "Oper",
+    "address": "Max-Joseph-Platz 4",
+    "operatorUrl": null,
+    "location": [
+      11.577765576094464,
+      48.14023164082478
+    ],
+    "entrances": [
+      [
+        11.577765576094464,
+        48.14023164082478
+      ]
+    ]
+  },
+  {
+    "pNumber": "P18",
+    "name": "Färbergraben",
+    "address": "Färbergraben 5",
+    "operatorUrl": null,
+    "location": [
+      11.571627164837071,
+      48.137401906891014
+    ],
+    "entrances": [
+      [
+        11.571999428932374,
+        48.13706746396541
+      ]
+    ]
+  },
+  {
+    "pNumber": "P22",
+    "name": "Böhringer",
+    "address": "Baaderstraße 6",
+    "operatorUrl": null,
+    "location": [
+      11.580992876844881,
+      48.13316694365438
+    ],
+    "entrances": [
+      [
+        11.580992876844881,
+        48.13316694365438
+      ]
+    ]
+  },
+  {
+    "pNumber": "P24",
+    "name": "Hauptbahnhof Süd",
+    "address": "Senefelderstr. 6",
+    "operatorUrl": null,
+    "location": [
+      11.560111641825463,
+      48.13855506735079
+    ],
+    "entrances": [
+      [
+        11.560111641825463,
+        48.13855506735079
+      ]
+    ]
+  }
+]

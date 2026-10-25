@@ -12,6 +12,7 @@
   },
   "scripts": {
     "dev": "npm run pre-build && vite",
+    "dev:stack": "npm run pre-build && vite --mode stack",
     "test": "vitest run",
     "build": "npm run pre-build && vue-tsc --build --noCheck && vite build && npm run post-build",
     "pre-build": "node scripts/fetch-basemap.mjs",

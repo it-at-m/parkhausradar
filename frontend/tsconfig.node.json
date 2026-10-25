@@ -3,7 +3,9 @@
   "include": [
     "vite.config.*",
     "vitest.config.*",
-    "encode-brackets-plugin.ts" // temporary fix
+    "encode-brackets-plugin.ts", // temporary fix
+    "simulator/**/*",
+    "src/api/frost.ts" // shared with the simulator
   ],
   "compilerOptions": {
     "composite": true,

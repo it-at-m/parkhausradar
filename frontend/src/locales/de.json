@@ -2,7 +2,10 @@
   "components": {
     "theMap": {
       "label": "Karte von München",
-      "loadError": "Die Karte konnte nicht geladen werden."
+      "loadError": "Die Karte konnte nicht geladen werden.",
+      "garage": "{name}: {free} von {capacity} frei",
+      "garageWithoutData": "{name}: keine Daten",
+      "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden."
     }
   }
 }
