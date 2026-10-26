@@ -365,16 +365,14 @@ describe("TheMap selection", () => {
     expect(markerLabels()).toEqual(["Pschorr: 120 von 400 frei"]);
   });
 
-  test("returns the focus to the marker when the details close", async () => {
+  test("focuses the marker of a garage", async () => {
     // given
     await mountMap();
-    findMarker("Oper").click();
-    await flushPromises();
-    (document.activeElement as HTMLElement | null)?.blur();
 
     // when
-    await wrapper?.setProps({ selectedGarage: null });
-    await flushPromises();
+    (
+      wrapper?.vm as unknown as { focusMarker: (pNumber: string) => void }
+    ).focusMarker("P1");
 
     // then
     expect(document.activeElement).toBe(findMarker("Oper"));

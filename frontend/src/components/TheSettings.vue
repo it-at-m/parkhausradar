@@ -13,59 +13,29 @@
         :aria-label="t('components.theSettings.open')"
         position="fixed"
         location="top end"
-        border
       />
     </template>
 
-    <v-card
-      class="d-flex flex-column"
-      :width="xs ? undefined : 360"
-      :rounded="xs ? 0 : 'lg'"
-      :border="!xs"
+    <panel-card
+      :title="t('components.theSettings.title')"
+      :close-label="t('components.theSettings.close')"
+      @close="isOpen = false"
     >
-      <v-card-item class="py-3">
-        <template
-          v-if="xs"
-          #prepend
-        >
-          <v-icon-btn
-            data-test="settings-back-btn"
-            :icon="mdiArrowLeft"
-            :aria-label="t('components.theSettings.close')"
-            variant="text"
-            @click="isOpen = false"
-          />
-        </template>
-        <v-card-title>
-          {{ t("components.theSettings.title") }}
-        </v-card-title>
-        <template
-          v-if="!xs"
-          #append
-        >
-          <v-icon-btn
-            data-test="settings-close-btn"
-            :icon="mdiClose"
-            :aria-label="t('components.theSettings.close')"
-            variant="text"
-            @click="isOpen = false"
-          />
-        </template>
-      </v-card-item>
-
-      <v-card-text>
+      <v-card-text class="pt-2">
         <h3
           id="settings-appearance-label"
-          class="text-label-large text-uppercase text-medium-emphasis mb-3"
+          class="text-label-large text-medium-emphasis mb-2"
         >
           {{ t("components.theSettings.appearance") }}
         </h3>
         <v-btn-toggle
           v-model="settingsStore.themePreference"
           class="w-100 h-auto pa-1 ga-1"
+          :class="{ 'bg-surface': xs }"
           aria-labelledby="settings-appearance-label"
+          rounded="lg"
+          :border="!xs"
           mandatory
-          border
         >
           <v-btn
             v-for="option in themeOptions"
@@ -77,13 +47,14 @@
             :text="option.label"
             variant="text"
             height="64"
+            rounded="md"
             stacked
           />
         </v-btn-toggle>
 
         <h3
           id="settings-language-label"
-          class="text-label-large text-uppercase text-medium-emphasis mt-6 mb-3"
+          class="text-label-large text-medium-emphasis mt-6 mb-2"
         >
           {{ t("components.theSettings.language") }}
         </h3>
@@ -92,17 +63,21 @@
           data-test="settings-language-select"
           :items="localeOptions"
           aria-labelledby="settings-language-label"
-          variant="outlined"
+          :variant="xs ? 'solo' : 'outlined'"
+          :flat="xs"
+          rounded="lg"
           density="comfortable"
           hide-details
         />
       </v-card-text>
 
-      <v-divider />
+      <v-divider v-if="!xs" />
 
-      <v-card-text class="flex-grow-0 text-body-small text-medium-emphasis">
+      <v-card-text
+        class="flex-grow-0 py-4 text-body-small text-medium-emphasis"
+      >
         <a
-          class="d-inline-flex align-center ga-1 mt-2 text-medium-emphasis"
+          class="d-inline-flex align-center ga-1 text-medium-emphasis"
           :href="SOURCE_CODE_URL"
           target="_blank"
           rel="noopener noreferrer"
@@ -114,7 +89,7 @@
           {{ t("components.theSettings.sourceCode") }}
         </a>
       </v-card-text>
-    </v-card>
+    </panel-card>
   </component>
 </template>
 
@@ -123,9 +98,7 @@ import type { Locale } from "@/plugins/i18n";
 import type { LocalePreference, ThemePreference } from "@/stores/settings";
 
 import {
-  mdiArrowLeft,
   mdiCellphone,
-  mdiClose,
   mdiCog,
   mdiGithub,
   mdiMonitor,
@@ -137,6 +110,7 @@ import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 import { VDialog, VMenu } from "vuetify/components";
 
+import PanelCard from "@/components/PanelCard.vue";
 import { SUPPORTED_LOCALES } from "@/plugins/i18n";
 import { useSettingsStore } from "@/stores/settings";
 
@@ -147,11 +121,13 @@ const { xs } = useDisplay();
 
 const overlayProps = computed(() =>
   xs.value
-    ? { fullscreen: true, transition: "dialog-top-transition" }
+    ? { fullscreen: true, transition: "fade-transition" }
     : ({
         location: "bottom end",
         offset: 8,
         closeOnContentClick: false,
+        // The menu clips the card to its own radius, which is the smaller one of dropdowns
+        contentClass: "rounded-xl",
       } as const)
 );
 

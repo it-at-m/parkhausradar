@@ -7,82 +7,86 @@
     tabindex="-1"
     aria-labelledby="garage-list-title"
   >
-    <v-card
-      class="card d-flex flex-column"
-      :width="xs ? undefined : 360"
-      :rounded="xs ? 0 : 'lg'"
-      :border="!xs"
+    <panel-card
+      class="card"
+      :title="t('components.garageList.title')"
+      title-id="garage-list-title"
+      :close-label="t('components.garageList.close')"
+      @close="emit('close')"
     >
-      <v-card-item class="py-3">
-        <template
-          v-if="xs"
-          #prepend
-        >
-          <v-icon-btn
-            data-test="garage-list-back-btn"
-            :icon="mdiArrowLeft"
-            :aria-label="t('components.garageList.close')"
-            variant="text"
-            @click="emit('close')"
-          />
-        </template>
-        <v-card-title
-          id="garage-list-title"
-          tag="h2"
-        >
-          {{ t("components.garageList.title") }}
-        </v-card-title>
-      </v-card-item>
-
-      <ul
+      <!-- On small screens the garages form one group like the pages on iOS -->
+      <v-sheet
         v-if="sortedGarages.length"
-        class="list d-flex flex-column ga-1 px-2 pb-2"
+        class="garages"
+        :class="xs ? 'mt-2 mx-4 mb-4' : 'px-2 pb-3'"
+        :rounded="xs ? 'lg' : 0"
       >
-        <li
-          v-for="garage in sortedGarages"
-          :key="garage.pNumber"
-        >
-          <v-list-item
-            tag="button"
-            type="button"
-            class="w-100 text-start"
-            data-test="garage-list-item"
-            :data-p-number="garage.pNumber"
-            :active="garage.pNumber === selectedGarage?.pNumber"
-            :aria-current="garage.pNumber === selectedGarage?.pNumber"
-            rounded="lg"
-            lines="two"
-            @click="emit('select', garage)"
+        <ul class="list">
+          <li
+            v-for="(garage, index) in sortedGarages"
+            :key="garage.pNumber"
+            :class="{ 'border-t': xs && index > 0 }"
           >
-            <template #prepend>
-              <v-chip
-                class="free-spaces justify-center me-3 font-weight-bold"
-                data-test="garage-list-free-spaces"
-                :color="getStatusColors(garage).background"
-                :style="{ color: getStatusColors(garage).foreground }"
-                variant="flat"
-                size="small"
+            <v-list-item
+              tag="button"
+              type="button"
+              class="w-100 text-start"
+              :class="{ 'px-3': !xs }"
+              data-test="garage-list-item"
+              :data-p-number="garage.pNumber"
+              :active="garage.pNumber === selectedGarage?.pNumber"
+              :aria-current="garage.pNumber === selectedGarage?.pNumber"
+              :rounded="xs ? 0 : 'lg'"
+              min-height="56"
+              @click="emit('select', garage)"
+            >
+              <template #prepend>
+                <v-chip
+                  class="free-spaces justify-center me-3 font-weight-bold"
+                  data-test="garage-list-free-spaces"
+                  :color="getStatusColors(garage).background"
+                  :style="{ color: getStatusColors(garage).foreground }"
+                  variant="flat"
+                  density="comfortable"
+                >
+                  {{
+                    garage.freeSpaces
+                      ? t("components.garageList.free", {
+                          free: garage.freeSpaces.value,
+                        })
+                      : UNKNOWN_FREE_SPACES
+                  }}
+                </v-chip>
+              </template>
+              <template #title>
+                <!-- Long names wrap instead of being cut off -->
+                <span
+                  class="d-block text-title-small font-weight-semibold text-wrap"
+                  data-test="garage-list-name"
+                >
+                  {{ garage.name }}
+                </span>
+              </template>
+              <template
+                v-if="garage.address"
+                #subtitle
               >
-                {{
-                  garage.freeSpaces
-                    ? t("components.garageList.free", {
-                        free: garage.freeSpaces.value,
-                      })
-                    : UNKNOWN_FREE_SPACES
-                }}
-              </v-chip>
-            </template>
-            <template #title>
-              <span data-test="garage-list-name">{{ garage.name }}</span>
-            </template>
-            <template #subtitle>
-              <span data-test="garage-list-subtitle">
-                {{ describeGarage(garage) }}
-              </span>
-            </template>
-          </v-list-item>
-        </li>
-      </ul>
+                <span data-test="garage-list-address">{{
+                  garage.address
+                }}</span>
+              </template>
+              <template #append>
+                <span
+                  class="ms-3 text-body-small text-medium-emphasis text-no-wrap"
+                  data-test="garage-list-occupancy"
+                >
+                  {{ describeOccupancy(garage) }}
+                </span>
+              </template>
+            </v-list-item>
+          </li>
+        </ul>
+      </v-sheet>
       <v-progress-linear
         v-else-if="!loaded && !error"
         data-test="garage-list-loading"
@@ -102,22 +106,21 @@
             : t("components.garageList.empty")
         }}
       </p>
-    </v-card>
+    </panel-card>
   </section>
 </template>
 
 <script setup lang="ts">
 import type { Garage } from "@/types/Garage";
 
-import { mdiArrowLeft } from "@mdi/js";
 import { useEventListener, useIntervalFn, useNow } from "@vueuse/core";
-import { computed, onMounted, useTemplateRef, watch } from "vue";
+import { computed, onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 
+import PanelCard from "@/components/PanelCard.vue";
 import { useGarages } from "@/composables/useGarages";
 import { GARAGE_STATUS_COLORS, UNKNOWN_FREE_SPACES } from "@/constants";
-import { isFocusInClosedDetails } from "@/util/focus";
 import { toPercentString } from "@/util/formatter";
 import { getGarageStatus, getOccupancy } from "@/util/garageStatus";
 import { isOverlayOpen } from "@/util/overlay";
@@ -161,12 +164,6 @@ function describeOccupancy(garage: Garage): string | null {
       });
 }
 
-function describeGarage(garage: Garage): string {
-  return [describeOccupancy(garage), garage.address]
-    .filter((part) => part)
-    .join(" · ");
-}
-
 // Open details are closed first
 useEventListener(document, "keydown", (event: KeyboardEvent) => {
   if (event.key === "Escape" && !isOverlayOpen() && !props.selectedGarage) {
@@ -174,18 +171,13 @@ useEventListener(document, "keydown", (event: KeyboardEvent) => {
   }
 });
 
-// Keyboard users closing the details continue at the garage in the list instead of its marker.
-// Runs before the marker, which only takes the focus if it is still in the details.
-watch(
-  () => props.selectedGarage?.pNumber,
-  (selected, wasSelected) => {
-    if (wasSelected && !selected && isFocusInClosedDetails()) {
-      root.value
-        ?.querySelector<HTMLElement>(`[data-p-number="${wasSelected}"]`)
-        ?.focus({ preventScroll: true });
-    }
-  }
-);
+function focusGarage(pNumber: string) {
+  root.value
+    ?.querySelector<HTMLElement>(`[data-p-number="${pNumber}"]`)
+    ?.focus({ preventScroll: true });
+}
+
+defineExpose({ focusGarage });
 
 // Moves keyboard users to the list, the next tab stop is the first garage
 onMounted(() => root.value?.focus({ preventScroll: true }));
@@ -209,10 +201,14 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
 }
 
 /* Only the garages scroll, the title stays visible */
+.garages {
+  overflow-y: auto;
+}
+
 .list {
   margin: 0;
+  padding: 0;
   list-style: none;
-  overflow-y: auto;
 }
 
 /* Wide enough for four digits, so the names of all garages start at the same position */

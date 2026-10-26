@@ -11,8 +11,8 @@
       class="card"
       :class="{ dragging: dragOffset !== null }"
       :style="{ transform: `translateY(${dragOffset ?? 0}px)` }"
-      :rounded="xs ? 't-xl' : 'xl'"
-      elevation="8"
+      :rounded="xs ? 't-xl' : undefined"
+      :color="xs ? 'grouped-background' : undefined"
       @pointerdown="startDrag"
       @pointermove="drag"
       @pointerup="endDrag"
@@ -22,7 +22,8 @@
         v-if="xs"
         class="handle"
       />
-      <v-card-item class="pt-4">
+      <!-- The handle of the sheet already adds space above the title -->
+      <v-card-item :class="{ 'pt-4': xs }">
         <template #prepend>
           <v-avatar
             :color="colors.background"
@@ -39,7 +40,7 @@
         <v-card-title
           id="garage-details-title"
           tag="h2"
-          class="text-title-large font-weight-bold text-wrap text-break"
+          class="ma-0 text-wrap text-break"
         >
           {{ garage.name }}
         </v-card-title>
@@ -59,7 +60,10 @@
             data-test="garage-details-close-btn"
             :icon="mdiClose"
             :aria-label="t('components.garageDetails.close')"
-            variant="text"
+            :color="innerSurfaceColor"
+            variant="flat"
+            size="32"
+            icon-size="18"
             @click="emit('close')"
           />
         </template>
@@ -68,7 +72,7 @@
       <v-card-text class="pt-2">
         <v-sheet
           class="pa-4"
-          color="surface-light"
+          :color="innerSurfaceColor"
           rounded="lg"
         >
           <template v-if="garage.freeSpaces">
@@ -171,6 +175,10 @@ const now = useNow({
 const root = useTemplateRef("root");
 
 const occupancy = computed(() => getOccupancy(props.garage));
+// The sheet has the gray background of the full screen pages, its boxes stand out in the surface color
+const innerSurfaceColor = computed(() =>
+  xs.value ? "surface" : "surface-light"
+);
 const colors = computed(
   () => GARAGE_STATUS_COLORS[getGarageStatus(props.garage, now.value)]
 );

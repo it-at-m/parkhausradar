@@ -1,0 +1,43 @@
+// Soft layered shadows with a hairline ring for everything floating above the map.
+// Their colors and opacities are set per theme in the Vuetify plugin.
+$floating-ring: 0 0 0 0.5px
+  rgba(var(--v-shadow-ring-color), var(--v-shadow-ring-opacity));
+$floating-shadow-color: rgba(
+  var(--v-shadow-color),
+  var(--v-floating-shadow-opacity)
+);
+
+@use "vuetify/settings" with (
+  $rounded: (
+    "md": 8px,
+    "lg": 12px,
+    "xl": 20px,
+  ),
+  $shadow-key: (
+    1: (
+      $floating-ring,
+      0 1px 2px $floating-shadow-color,
+    ),
+  ),
+  $shadow-ambient: (
+    1: (
+      0 4px 12px $floating-shadow-color,
+      0 12px 32px $floating-shadow-color,
+    ),
+  ),
+  $button-elevation: (
+    "default": 1,
+    "hover": 1,
+    "active": 1,
+  ),
+  $card-border-radius: 20px,
+  $menu-content-border-radius: 12px,
+  $select-content-border-radius: 12px,
+  $card-item-padding: 20px 20px 8px,
+  $card-text-padding: 20px,
+  $card-title-font-size: 1.25rem,
+  $card-title-font-weight: 600,
+  $card-title-line-height: 1.75rem,
+  $card-title-letter-spacing: 0,
+  $menu-elevation: 1
+);

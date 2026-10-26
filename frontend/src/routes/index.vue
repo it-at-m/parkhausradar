@@ -5,6 +5,7 @@
       :inert="listShown && xs"
     >
       <the-map
+        ref="map"
         v-model:selected-garage="selectedGarage"
         :inset="mapInset"
       />
@@ -17,7 +18,6 @@
         :icon="mdiFormatListBulleted"
         :aria-label="t('routes.index.showList')"
         :aria-expanded="listShown"
-        border
         @click="listShown ? closeList() : showList()"
       />
       <div
@@ -31,6 +31,7 @@
           <!-- The dialog mounts its content only while it is open -->
           <garage-list
             v-if="xs || listShown"
+            ref="list"
             :selected-garage="selectedGarage"
             @select="selectedGarage = $event"
             @close="closeList"
@@ -69,13 +70,16 @@ import {
 import GarageDetails from "@/components/GarageDetails.vue";
 import GarageList from "@/components/GarageList.vue";
 import TheMap from "@/components/TheMap.vue";
+import { isFocusInClosedDetails } from "@/util/focus";
 
 const { t } = useI18n();
-const { xs } = useDisplay();
+const { xs, smAndDown } = useDisplay();
 const route = useRoute();
 const router = useRouter();
 const selectedGarage = ref<Garage | null>(null);
 const details = useTemplateRef("details");
+const list = useTemplateRef("list");
+const map = useTemplateRef("map");
 const viewToggle = useTemplateRef<ComponentPublicInstance>("viewToggle");
 const viewToggleElement = computed<HTMLElement | undefined>(
   () => viewToggle.value?.$el
@@ -135,18 +139,34 @@ function closeList() {
   viewToggleElement.value?.focus();
 }
 
-// On small screens the list covers the map, so only one of the list and the details is shown
+// The list and the details only fit next to each other on larger screens, otherwise one of them is shown
 watch(listShown, (shown) => {
-  if (shown && xs.value) {
+  if (shown && smAndDown.value) {
     selectedGarage.value = null;
   }
 });
 
 watch(selectedGarage, (garage) => {
-  if (garage && listShown.value && xs.value) {
+  if (garage && listShown.value && smAndDown.value) {
     showMap();
   }
 });
+
+// Keyboard users closing the details continue at the garage they came from, in the list if it is shown and otherwise on the map
+watch(
+  () => selectedGarage.value?.pNumber,
+  (selected, wasSelected) => {
+    if (!wasSelected || selected || !isFocusInClosedDetails()) {
+      return;
+    }
+    if (listShown.value && list.value) {
+      list.value.focusGarage(wasSelected);
+    } else {
+      map.value?.focusMarker(wasSelected);
+    }
+  },
+  { flush: "post" }
+);
 </script>
 
 <style scoped>

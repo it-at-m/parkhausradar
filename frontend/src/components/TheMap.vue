@@ -233,6 +233,14 @@ watch(
   () => map.value?.setStyle(currentStyle())
 );
 
+function focusMarker(pNumber: string) {
+  mapContainer.value
+    ?.querySelector<HTMLElement>(`[data-p-number="${pNumber}"]`)
+    ?.focus({ preventScroll: true });
+}
+
+defineExpose({ focusMarker });
+
 // After the markers are unmounted, which remove themselves from the map
 onUnmounted(() => {
   map.value?.remove();
