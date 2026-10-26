@@ -337,6 +337,19 @@ describe("TheMap selection", () => {
     expect(fakeMap().easeTo).toHaveBeenCalledTimes(1);
   });
 
+  test("keeps the map position when the inset is replaced with the same values", async () => {
+    // given
+    await mountMap();
+    findMarker("Oper").click();
+    await flushPromises();
+
+    // when
+    await wrapper?.setProps({ inset: { left: 0, bottom: 0 } });
+
+    // then
+    expect(fakeMap().easeTo).toHaveBeenCalledTimes(1);
+  });
+
   test("deselects a garage that disappears", async () => {
     // given
     await mountMap();

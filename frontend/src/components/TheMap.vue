@@ -224,8 +224,9 @@ watch(garages, (loaded) => {
 // Refreshed counts of the same garage do not move the map
 watch(() => selectedGarage.value?.pNumber, showSelectedGarage);
 
-// The details are measured after they are shown, so the map adjusts once their height is known
-watch(() => [props.inset.left, props.inset.bottom], showSelectedGarage);
+// The details are measured after they are shown, so the map adjusts once their height is known.
+// Separate sources, as the inset object is replaced whenever the selected garage is refreshed.
+watch([() => props.inset.left, () => props.inset.bottom], showSelectedGarage);
 
 watch(
   () => theme.global.current.value.dark,
