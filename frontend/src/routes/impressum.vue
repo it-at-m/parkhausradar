@@ -34,7 +34,7 @@
     <p>
       Im Übrigen gilt das
       <a
-        href="https://stadt.muenchen.de/infos/impressum-datenschutz.html"
+        href="https://stadt.muenchen.de/infos/impressum.html"
         target="_blank"
         rel="noopener noreferrer"
         >Impressum der Landeshauptstadt München</a
