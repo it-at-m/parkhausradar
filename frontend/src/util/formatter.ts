@@ -14,6 +14,13 @@ export function toDateAndTimeString(date: Date): string {
   return date ? date.toLocaleString() : "";
 }
 
+export function toPercentString(share: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
+    style: "percent",
+    maximumFractionDigits: 0,
+  }).format(share);
+}
+
 /**
  * Describes how long ago a date was, e.g. "vor 2 Min." in German.
  * Dates in the future count as now, they are caused by clocks that differ slightly.

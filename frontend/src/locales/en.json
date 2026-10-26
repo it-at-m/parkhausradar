@@ -34,6 +34,21 @@
       "occupied": "{percent} occupied",
       "updated": "Updated {time}",
       "noData": "No current occupancy data"
+    },
+    "garageList": {
+      "title": "Parking garages",
+      "free": "{free} free",
+      "occupied": "{percent} occupied",
+      "noData": "No data",
+      "loading": "Loading parking garages",
+      "loadError": "The parking garages could not be loaded.",
+      "empty": "No parking garages available.",
+      "close": "Close list"
+    }
+  },
+  "routes": {
+    "index": {
+      "showList": "Show list"
     }
   }
 }

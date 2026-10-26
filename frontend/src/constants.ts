@@ -10,6 +10,9 @@ export const enum STATUS_INDICATORS {
 // Language independent symbol for parking, so it is not translated
 export const PARKING_SYMBOL = "P";
 
+// Language independent symbol for free spaces without data
+export const UNKNOWN_FREE_SPACES = "?";
+
 interface GarageStatusColors {
   /** Fill of the marker and the progress bar */
   background: string;

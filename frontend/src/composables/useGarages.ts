@@ -1,6 +1,10 @@
 import type { Garage } from "@/types/Garage";
 
-import { useDocumentVisibility, useIntervalFn } from "@vueuse/core";
+import {
+  createSharedComposable,
+  useDocumentVisibility,
+  useIntervalFn,
+} from "@vueuse/core";
 import { shallowRef, watch } from "vue";
 
 import { getGarages } from "@/api/garages-client";
@@ -19,10 +23,13 @@ const REFRESH_INTERVAL_MS = 60_000;
  * Loads the garages and refreshes them every minute while the tab is visible.
  * Failed refreshes keep the last garages, the error is only set once their counts are outdated
  * and cleared again as soon as loading works.
+ * Shared, so the map and the list show the same garages without polling twice.
  */
-export function useGarages() {
+export const useGarages = createSharedComposable(() => {
   const garages = shallowRef<Garage[]>([]);
   const error = shallowRef<GaragesError | null>(null);
+  // Tells an empty result apart from garages that are still loading
+  const loaded = shallowRef(false);
   let loadedAt: number | undefined;
   let loading = false;
 
@@ -34,6 +41,7 @@ export function useGarages() {
     try {
       garages.value = await getGarages();
       loadedAt = Date.now();
+      loaded.value = true;
       error.value = null;
     } catch (cause) {
       console.debug(cause);
@@ -65,5 +73,5 @@ export function useGarages() {
     { immediate: true }
   );
 
-  return { garages, error };
-}
+  return { garages, error, loaded };
+});

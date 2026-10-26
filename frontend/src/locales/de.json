@@ -34,6 +34,21 @@
       "occupied": "{percent} belegt",
       "updated": "Stand: {time}",
       "noData": "Keine aktuellen Belegungsdaten"
+    },
+    "garageList": {
+      "title": "Parkhäuser",
+      "free": "{free} frei",
+      "occupied": "{percent} belegt",
+      "noData": "Keine Daten",
+      "loading": "Parkhäuser werden geladen",
+      "loadError": "Die Parkhäuser konnten nicht geladen werden.",
+      "empty": "Keine Parkhäuser verfügbar.",
+      "close": "Liste schließen"
+    }
+  },
+  "routes": {
+    "index": {
+      "showList": "Liste anzeigen"
     }
   }
 }
