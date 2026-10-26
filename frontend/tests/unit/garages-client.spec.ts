@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 
 import type {
   DatastreamType,
@@ -6,7 +6,7 @@ import type {
   LocationType,
 } from "../../src/api/frost";
 
-import { toGarage, toGarages } from "../../src/api/garages-client";
+import { getGarages, toGarage, toGarages } from "../../src/api/garages-client";
 
 function thing(overrides: Partial<FrostThing> = {}): FrostThing {
   return {
@@ -209,5 +209,56 @@ describe("toGarages", () => {
       new Error("P4: expected exactly one freeSpaces datastream, got 0")
     );
     debug.mockRestore();
+  });
+
+  test("fails if no thing matches the model, instead of showing an empty map", () => {
+    // given
+    const debug = vi.spyOn(console, "debug").mockReturnValue(undefined);
+    const invalid = thing({ name: "Testparkhaus Süd" });
+
+    // then
+    expect(() => toGarages([invalid])).toThrow(
+      "None of the garages match the model of the collector"
+    );
+    debug.mockRestore();
+  });
+
+  test("returns no garages if there are no things", () => {
+    // when
+    const garages = toGarages([]);
+
+    // then
+    expect(garages).toEqual([]);
+  });
+});
+
+describe("getGarages", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  test("gives up on a stalled request, so later refreshes are not held back", async () => {
+    // given
+    const timeout = new AbortController();
+    vi.spyOn(AbortSignal, "timeout").mockReturnValue(timeout.signal);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) =>
+            init.signal?.addEventListener("abort", () =>
+              reject(init.signal?.reason)
+            )
+          )
+      )
+    );
+    const request = getGarages();
+
+    // when
+    timeout.abort(new DOMException("timed out", "TimeoutError"));
+
+    // then
+    await expect(request).rejects.toThrow("timed out");
   });
 });

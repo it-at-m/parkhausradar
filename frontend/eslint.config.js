@@ -40,7 +40,11 @@ export default withVueTs(
       "@intlify/vue-i18n/no-duplicate-keys-in-locale": ["error"],
       "@intlify/vue-i18n/no-missing-keys-in-other-locales": ["error"],
       "@intlify/vue-i18n/no-unknown-locale": ["error"],
-      "@intlify/vue-i18n/no-unused-keys": ["error"],
+      // Includes TypeScript, as composables translate messages as well
+      "@intlify/vue-i18n/no-unused-keys": [
+        "error",
+        { extensions: [".js", ".ts", ".vue"] },
+      ],
     },
     settings: {
       "vue-i18n": {

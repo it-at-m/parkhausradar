@@ -4,8 +4,13 @@
       "label": "Karte von München",
       "loadError": "Die Karte konnte nicht geladen werden.",
       "garage": "{name}: {free} von {capacity} frei",
+      "garageOutdated": "{name}: {free} von {capacity} frei, Stand veraltet",
+      "garageWithoutCapacity": "{name}: {free} frei",
+      "garageWithoutCapacityOutdated": "{name}: {free} frei, Stand veraltet",
       "garageWithoutData": "{name}: keine Daten",
-      "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden."
+      "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden.",
+      "garagesRefreshError": "Die Belegung konnte nicht aktualisiert werden.",
+      "dismissGaragesError": "Verwerfen"
     },
     "theSettings": {
       "open": "Einstellungen öffnen",
@@ -20,6 +25,15 @@
       "language": "Sprache",
       "systemLanguage": "Gerätesprache ({language})",
       "sourceCode": "Quellcode auf GitHub"
+    },
+    "garageDetails": {
+      "close": "Details schließen",
+      "ofCapacityFree": "von {capacity} frei",
+      "free": "frei",
+      "occupancy": "Belegung",
+      "occupied": "{percent} belegt",
+      "updated": "Stand: {time}",
+      "noData": "Keine aktuellen Belegungsdaten"
     }
   }
 }
