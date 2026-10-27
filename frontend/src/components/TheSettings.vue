@@ -119,13 +119,14 @@ import {
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
 } from "@mdi/js";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 import { VDialog, VMenu } from "vuetify/components";
 
 import PanelCard from "@/components/PanelCard.vue";
 import { useMapAppNames } from "@/composables/useMapAppNames";
+import { useQueryState } from "@/composables/useQueryState";
 import { SUPPORTED_LOCALES } from "@/plugins/i18n";
 import { useSettingsStore } from "@/stores/settings";
 import { MAP_APPS } from "@/util/mapApps";
@@ -137,11 +138,17 @@ const { xs } = useDisplay();
 
 const overlayProps = computed(() =>
   xs.value
-    ? { fullscreen: true, transition: "fade-transition" }
+    ? {
+        fullscreen: true,
+        transition: "fade-transition",
+        // The back button already closes it through the address
+        closeOnBack: false,
+      }
     : ({
         location: "bottom end",
         offset: 8,
         closeOnContentClick: false,
+        closeOnBack: false,
         // The menu clips the card to its own radius, which is the smaller one of dropdowns
         contentClass: "rounded-xl",
       } as const)
@@ -178,7 +185,12 @@ const selectDefaults = computed(() => ({
 }));
 const settingsStore = useSettingsStore();
 const mapAppNames = useMapAppNames();
-const isOpen = ref(false);
+const query = useQueryState();
+// Kept in the address, so the back button closes the full screen page on small screens
+const isOpen = computed({
+  get: () => query.get("dialog") === "settings",
+  set: (open) => query.change({ dialog: open ? "settings" : undefined }),
+});
 
 // Languages are shown in their own language so users can find theirs regardless of the current locale
 function getLanguageName(locale: Locale): string {

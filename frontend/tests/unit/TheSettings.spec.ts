@@ -61,6 +61,7 @@ async function mountApp(deviceLanguages: string[]) {
     global: { plugins: [router, createPinia(), i18n, vuetify] },
   });
   await flushPromises();
+  return router;
 }
 
 function findByDataTest(dataTest: string): HTMLElement {
@@ -134,6 +135,33 @@ async function selectOption(dataTest: string, name: string) {
 async function selectLanguage(name: string) {
   await selectOption("settings-language-select", name);
 }
+
+describe("TheSettings opening", () => {
+  test("closes with the back button", async () => {
+    // given
+    const router = await mountApp(["de-DE"]);
+    await openSettings();
+
+    // Vuetify delays navigations while the selects are mounted, the test waits until it is done
+    const navigated = new Promise<void>((resolve) => {
+      const remove = router.afterEach(() => {
+        remove();
+        resolve();
+      });
+    });
+
+    // when
+    router.back();
+    await navigated;
+    await flushPromises();
+
+    // then
+    expect(
+      findByDataTest("settings-open-btn").getAttribute("aria-expanded")
+    ).toBe("false");
+    expect(router.currentRoute.value.query).toEqual({});
+  });
+});
 
 describe("TheSettings theme", () => {
   test("applies the selected theme", async () => {

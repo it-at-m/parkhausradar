@@ -181,6 +181,7 @@ import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 
 import GarageRouteDialog from "@/components/GarageRouteDialog.vue";
+import { useQueryState } from "@/composables/useQueryState";
 import {
   GARAGE_STATUS_COLORS,
   PARKING_SYMBOL,
@@ -230,7 +231,12 @@ const colors = computed(
 
 const settingsStore = useSettingsStore();
 const snackbarStore = useSnackbarStore();
-const routeDialogShown = ref(false);
+const query = useQueryState();
+// Kept in the address, so the back button closes the dialog before the details
+const routeDialogShown = computed({
+  get: () => query.get("dialog") === "route",
+  set: (shown) => query.change({ dialog: shown ? "route" : undefined }),
+});
 
 const routeUrl = computed(() =>
   settingsStore.mapAppPreference === "ask"

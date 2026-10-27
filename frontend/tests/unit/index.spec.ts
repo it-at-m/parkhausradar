@@ -54,6 +54,8 @@ let wrapper: VueWrapper | undefined;
 let router: Router;
 
 async function mountIndex(path = "/") {
+  // jsdom keeps the history between tests, each test starts without a previous entry of the app
+  window.history.replaceState(null, "");
   router = createRouter({
     history: createWebHistory(),
     routes: [{ path: "/", component: IndexRoute }],
@@ -241,24 +243,36 @@ describe("index garage selection on small screens", () => {
   test("shows a garage selected in the list on the map with its details", async () => {
     // given
     await mountIndex();
-    await toggle().trigger("click");
-    await flushPromises();
+    await navigation(() => toggle().trigger("click"));
 
     // when
     await navigation(() => firstListItem().click());
 
     // then
     expect(listShown()).toBe(false);
-    expect(router.currentRoute.value.query).toEqual({});
+    expect(router.currentRoute.value.query).toEqual({ garage: "P1" });
     expect(wrapper?.get("[data-test=map]").text()).toBe("Oper");
     expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
+  });
+
+  test("returns from the details to the list with the back button", async () => {
+    // given
+    await mountIndex();
+    await navigation(() => toggle().trigger("click"));
+    await navigation(() => firstListItem().click());
+
+    // when
+    await navigation(() => router.back());
+
+    // then
+    expect(listShown()).toBe(true);
+    expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
   });
 
   test("closes the details when the list is opened", async () => {
     // given
     await mountIndex();
-    await toggle().trigger("click");
-    await flushPromises();
+    await navigation(() => toggle().trigger("click"));
     await navigation(() => firstListItem().click());
 
     // when
@@ -269,43 +283,108 @@ describe("index garage selection on small screens", () => {
     expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
     expect(wrapper?.get("[data-test=map]").text()).toBe("");
   });
+
+  test("keeps the details when the screen shrinks with the list next to them", async () => {
+    // given
+    setScreenWidth(DESKTOP_WIDTH);
+    await mountIndex("/?view=list&garage=P1");
+
+    // when
+    await navigation(() => setScreenWidth(MOBILE_WIDTH));
+
+    // then
+    expect(listShown()).toBe(false);
+    expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
+    expect(router.currentRoute.value.query).toEqual({ garage: "P1" });
+  });
 });
 
-describe("index shared links", () => {
-  test("opens the details of the shared garage", async () => {
+describe("index details in the address", () => {
+  test("opens the details of a linked garage", async () => {
     // when
     await mountIndex("/?garage=P1");
 
     // then
     expect(wrapper?.get("[data-test=map]").text()).toBe("Oper");
     expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
-    // Reloading after closing the details does not open them again
-    expect(router.currentRoute.value.query).toEqual({});
   });
 
   test("shows only the map for a garage that does not exist", async () => {
     // when
     await mountIndex("/?garage=P99");
+    await flushPromises();
 
     // then
     expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
     expect(router.currentRoute.value.query).toEqual({});
+  });
+
+  test("closes the details with the back button", async () => {
+    // given
+    await mountIndex("/?view=list");
+    await navigation(() =>
+      wrapper?.get("[data-test=garage-list-item]").trigger("click")
+    );
+
+    // when
+    await navigation(() => router.back());
+
+    // then
+    expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
+    expect(listShown()).toBe(true);
+  });
+
+  test("closes the route dialog before the details with the back button", async () => {
+    // given
+    await mountIndex("/?view=list");
+    await navigation(() =>
+      wrapper?.get("[data-test=garage-list-item]").trigger("click")
+    );
+    await navigation(() =>
+      wrapper?.get("[data-test=garage-details-route-btn]").trigger("click")
+    );
+
+    // when
+    await navigation(() => router.back());
+
+    // then
+    expect(
+      document.querySelector(
+        ".v-overlay--active [data-test=garage-route-dialog]"
+      )
+    ).toBeNull();
+    expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
+  });
+
+  test("closing the details goes back instead of adding an entry the back button would reopen", async () => {
+    // given
+    await mountIndex("/?view=list");
+    await navigation(() =>
+      wrapper?.get("[data-test=garage-list-item]").trigger("click")
+    );
+    const entriesWithDetails = window.history.length;
+
+    // when
+    await navigation(() =>
+      wrapper?.get("[data-test=garage-details-close-btn]").trigger("click")
+    );
+
+    // then
+    expect(router.currentRoute.value.query).toEqual({ view: "list" });
+    expect(window.history.length).toBe(entriesWithDetails);
+    expect(router.options.history.state.forward).toBe("/?view=list&garage=P1");
   });
 });
 
 describe("index focus after closing the details", () => {
   test("returns the focus to the marker if the list is not shown", async () => {
     // given
-    await mountIndex("/?view=list");
-    await wrapper?.get("[data-test=garage-list-item]").trigger("click");
-    await navigation(() => toggle().trigger("click"));
-
+    await mountIndex("/?garage=P1");
     const closeButton = wrapper?.get("[data-test=garage-details-close-btn]");
     (closeButton?.element as HTMLElement | undefined)?.focus();
 
     // when
-    await closeButton?.trigger("click");
-    await flushPromises();
+    await navigation(() => closeButton?.trigger("click"));
 
     // then
     expect(focusMarker).toHaveBeenCalledWith("P1");
@@ -323,7 +402,7 @@ describe("index garage selection on medium screens", () => {
 
     // then
     expect(listShown()).toBe(false);
-    expect(router.currentRoute.value.query).toEqual({});
+    expect(router.currentRoute.value.query).toEqual({ garage: "P1" });
     expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
   });
 });
@@ -334,12 +413,16 @@ describe("index garage selection on larger screens", () => {
     await mountIndex("/?view=list");
 
     // when
-    await wrapper?.get("[data-test=garage-list-item]").trigger("click");
-    await flushPromises();
+    await navigation(() =>
+      wrapper?.get("[data-test=garage-list-item]").trigger("click")
+    );
 
     // then
     expect(listShown()).toBe(true);
-    expect(router.currentRoute.value.query).toEqual({ view: "list" });
+    expect(router.currentRoute.value.query).toEqual({
+      view: "list",
+      garage: "P1",
+    });
     expect(wrapper?.get("[data-test=map]").text()).toBe("Oper");
     expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
     expect(
@@ -350,12 +433,14 @@ describe("index garage selection on larger screens", () => {
   test("closes the details before the list on Escape", async () => {
     // given
     await mountIndex("/?view=list");
-    await wrapper?.get("[data-test=garage-list-item]").trigger("click");
-    await flushPromises();
+    await navigation(() =>
+      wrapper?.get("[data-test=garage-list-item]").trigger("click")
+    );
 
     // when
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-    await flushPromises();
+    await navigation(() =>
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+    );
 
     // then
     expect(wrapper?.find("#garage-details-title").exists()).toBe(false);

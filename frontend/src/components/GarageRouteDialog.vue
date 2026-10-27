@@ -1,8 +1,10 @@
 <template>
+  <!-- The back button already closes it through the address -->
   <component
     :is="xs ? VBottomSheet : VDialog"
     v-model="isOpen"
     :max-width="xs ? undefined : 400"
+    :close-on-back="false"
   >
     <v-card
       data-test="garage-route-dialog"

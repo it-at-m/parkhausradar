@@ -4,6 +4,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { nextTick } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
 import { VDialog, VSnackbar } from "vuetify/components";
 
 import type { Garage } from "../../src/types/Garage";
@@ -43,7 +44,18 @@ function mountDetails(garage: Garage) {
   return mount(GarageDetails, {
     props: { garage },
     attachTo: document.body,
-    global: { plugins: [pinia, i18n, vuetify] },
+    global: {
+      // The route dialog is kept in the address
+      plugins: [
+        pinia,
+        createRouter({
+          history: createMemoryHistory(),
+          routes: [{ path: "/", component: { template: "<div />" } }],
+        }),
+        i18n,
+        vuetify,
+      ],
+    },
   });
 }
 
