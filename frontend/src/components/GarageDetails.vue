@@ -106,7 +106,7 @@
               <span v-if="occupancy !== null">
                 {{
                   t("components.garageDetails.occupied", {
-                    percent: percentFormat.format(occupancy),
+                    percent: toPercentString(occupancy, locale),
                   })
                 }}
               </span>
@@ -145,8 +145,9 @@ import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 
 import { GARAGE_STATUS_COLORS, PARKING_SYMBOL } from "@/constants";
-import { toRelativeTimeString } from "@/util/formatter";
+import { toPercentString, toRelativeTimeString } from "@/util/formatter";
 import { getGarageStatus, getOccupancy } from "@/util/garageStatus";
+import { isOverlayOpen } from "@/util/overlay";
 
 const props = defineProps<{
   garage: Garage;
@@ -168,14 +169,6 @@ const now = useNow({
   scheduler: (callback) => useIntervalFn(callback, 30_000),
 });
 const root = useTemplateRef("root");
-
-const percentFormat = computed(
-  () =>
-    new Intl.NumberFormat(locale.value, {
-      style: "percent",
-      maximumFractionDigits: 0,
-    })
-);
 
 const occupancy = computed(() => getOccupancy(props.garage));
 const colors = computed(
@@ -217,15 +210,6 @@ function cancelDrag() {
   dragOffset.value = null;
 }
 
-// Vuetify closes its own overlays on Escape too, so one press must only close the topmost layer
-function isOverlayOpen(): boolean {
-  return (
-    document.querySelector(
-      ".v-overlay--active:not(.v-snackbar):not(.v-tooltip)"
-    ) !== null
-  );
-}
-
 useEventListener(document, "keydown", (event: KeyboardEvent) => {
   if (event.key === "Escape" && !isOverlayOpen()) {
     emit("close");
@@ -238,12 +222,12 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
 
 <style scoped>
 .garage-details {
-  position: fixed;
-  z-index: 4;
   outline: none;
 }
 
 .garage-details.mobile {
+  position: fixed;
+  z-index: 4;
   right: 0;
   bottom: 0;
   left: 0;
@@ -251,8 +235,6 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
 
 /* As wide as the name, long names wrap instead of stretching the card across the map */
 .garage-details.desktop {
-  top: 16px;
-  left: 16px;
   width: max-content;
   min-width: 320px;
   max-width: 480px;

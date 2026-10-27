@@ -1,6 +1,9 @@
 import { describe, expect, test } from "vitest";
 
-import { toRelativeTimeString } from "../../src/util/formatter";
+import {
+  toPercentString,
+  toRelativeTimeString,
+} from "../../src/util/formatter";
 
 const NOW = new Date("2026-10-21T12:00:00Z");
 const MINUTE = 60_000;
@@ -29,6 +32,23 @@ describe("toRelativeTimeString", () => {
 
       // then
       expect(result).toBe(expected);
+    }
+  );
+});
+
+describe("toPercentString", () => {
+  test.for([
+    { share: 0.218, locale: "de", expected: "22 %" },
+    { share: 1, locale: "de", expected: "100 %" },
+    { share: 0.218, locale: "en", expected: "22%" },
+  ])(
+    "formats $share in $locale as '$expected'",
+    ({ share, locale, expected }) => {
+      // when
+      const result = toPercentString(share, locale);
+
+      // then
+      expect(result.replace(/\s/g, " ")).toBe(expected);
     }
   );
 });

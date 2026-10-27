@@ -40,7 +40,12 @@ import { Marker } from "maplibre-gl";
 import { computed, onBeforeUnmount, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { GARAGE_STATUS_COLORS, PARKING_SYMBOL } from "@/constants";
+import {
+  GARAGE_STATUS_COLORS,
+  PARKING_SYMBOL,
+  UNKNOWN_FREE_SPACES,
+} from "@/constants";
+import { isFocusInClosedDetails } from "@/util/focus";
 import { getGarageStatus, isGarageDataOutdated } from "@/util/garageStatus";
 
 const props = defineProps<{
@@ -59,9 +64,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [];
 }>();
-
-// Language independent symbol, so it is not translated
-const UNKNOWN_FREE_SPACES = "?";
 
 const { t } = useI18n();
 const freeSpaces = computed(
@@ -108,14 +110,7 @@ watch(
     // Brings the selected marker in front of its neighbours
     container.style.zIndex = selected ? "1" : "";
     // Keyboard users closing the details continue at the marker instead of the start of the page
-    const focused = document.activeElement;
-    if (
-      wasSelected &&
-      !selected &&
-      (!focused ||
-        focused === document.body ||
-        focused.closest("[data-garage-details]"))
-    ) {
+    if (wasSelected && !selected && isFocusInClosedDetails()) {
       button.value?.focus({ preventScroll: true });
     }
   },
