@@ -9,14 +9,33 @@ import type { Garage, Measurement } from "@/types/Garage";
 import { defaultResponseHandler, getConfig } from "@/api/fetch-utils";
 import { FROST_THINGS_PATH, garagesQuery } from "@/api/frost";
 
+// Requests on unstable connections can stall indefinitely, which would hold back every later refresh
+const GARAGES_REQUEST_TIMEOUT_MS = 20_000;
+
 export async function getGarages(): Promise<Garage[]> {
-  const response = await fetch(
-    `${FROST_THINGS_PATH}?${garagesQuery()}`,
-    getConfig()
-  );
+  const response = await fetch(`${FROST_THINGS_PATH}?${garagesQuery()}`, {
+    ...getConfig(),
+    signal: AbortSignal.timeout(GARAGES_REQUEST_TIMEOUT_MS),
+  });
   defaultResponseHandler(response, "Parkhäuser konnten nicht geladen werden.");
   const collection: FrostCollection<FrostThing> = await response.json();
-  return collection.value.map(toGarage);
+  return toGarages(collection.value);
+}
+
+export function toGarages(things: FrostThing[]): Garage[] {
+  const garages: Garage[] = [];
+  for (const thing of things) {
+    try {
+      garages.push(toGarage(thing));
+    } catch (error) {
+      console.debug(error);
+    }
+  }
+  // An empty map would look like a working app without garages, so loading has to fail visibly
+  if (things.length > 0 && garages.length === 0) {
+    throw new Error("None of the garages match the model of the collector");
+  }
+  return garages;
 }
 
 /**

@@ -1,5 +1,6 @@
 # For documentation see https://github.com/sclorg/s2i-python-container
-FROM registry.access.redhat.com/ubi10/python-314-minimal:10.2-1791464217@sha256:8e385670e8a2ef3ca18f5bc3ef005a424601b58f2964d5a144861be544537624
+# The collector has no runtime dependencies, so the image needs neither uv nor downloads besides this base image
+FROM registry.access.redhat.com/ubi10/python-314-minimal:10.2-1792484457@sha256:8114f8e3f19a4d5b0cc2f0022e409dee5f296d69207aa489a892c01b8ab4a17f
 
 COPY *.py garages.json ./
 

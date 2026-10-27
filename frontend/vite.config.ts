@@ -32,7 +32,9 @@ export default defineConfig(({ mode }) => {
           optionsAPI: isDevelopment,
         },
       }),
-      vuetify(),
+      vuetify({
+        styles: { configFile: "src/styles/settings.scss" },
+      }),
       UnpluginFonts({
         inlineFontFace: true,
         fontsource: {

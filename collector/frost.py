@@ -79,7 +79,9 @@ class FrostClient:
 def sync_garages(frost: FrostClient, garages: list[Garage]) -> dict[str, dict[str, int]]:
     """Brings Things, Locations and Datastreams in line with garages.json and returns the Datastream ids per P-Number and type."""
     sensor_id = _ensure_by_name(frost, "Sensors", SENSOR)
-    observed_property_ids = {datastream_type: _ensure_by_name(frost, "ObservedProperties", entity) for datastream_type, entity in OBSERVED_PROPERTIES.items()}
+    observed_property_ids = {
+        datastream_type: _ensure_by_name(frost, "ObservedProperties", entity) for datastream_type, entity in OBSERVED_PROPERTIES.items()
+    }
 
     existing = {
         thing["properties"].get("pNumber"): thing
@@ -107,7 +109,9 @@ def sync_garages(frost: FrostClient, garages: list[Garage]) -> dict[str, dict[st
         ids = {datastream["properties"].get("type"): datastream["@iot.id"] for datastream in thing["Datastreams"]}
         for datastream_type, observed_property_id in observed_property_ids.items():
             if datastream_type not in ids:
-                ids[datastream_type] = frost.create("Datastreams", _datastream(garage, datastream_type, thing_id, sensor_id, observed_property_id))
+                ids[datastream_type] = frost.create(
+                    "Datastreams", _datastream(garage, datastream_type, thing_id, sensor_id, observed_property_id)
+                )
         datastream_ids[garage.p_number] = ids
 
     unknown = sorted(set(existing) - {garage.p_number for garage in garages}, key=str)
@@ -185,8 +189,7 @@ def _thing(garage: Garage) -> dict:
 
 def _locations(garage: Garage) -> list[dict]:
     points = [("garage", f"{garage.p_number} Garage", garage.location)] + [
-        ("entrance", f"{garage.p_number} Entrance {index}", coordinates)
-        for index, coordinates in enumerate(garage.entrances, start=1)
+        ("entrance", f"{garage.p_number} Entrance {index}", coordinates) for index, coordinates in enumerate(garage.entrances, start=1)
     ]
     return [
         {

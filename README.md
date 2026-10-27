@@ -73,7 +73,7 @@ The occupancy comes from the parking guidance system of Munich: [pls-muc-z.com/p
 
 ### Collector
 
-`collector/` is a small Python service without dependencies that runs permanently. It
+`collector/` is a small Python service without runtime dependencies, managed with [uv](https://docs.astral.sh/uv/), that runs permanently. It
 
 1. creates or updates a Thing with its Locations and Datastreams in FROST for every garage in [`collector/garages.json`](collector/garages.json) once on start,
 2. fetches the source every 60 seconds and writes the free spaces and the capacity as one Observation each, with the time of the request, in one `CreateObservations` request (SensorThings Data Array extension).
@@ -93,7 +93,7 @@ The garages, keyed by P-Number, live in `collector/garages.json` and are version
 
 `address` and `operatorUrl` may be `null`. A failed run is logged and repeated a minute later, starting again with step 1, so the collector also recovers after FROST was unavailable or reset.
 
-The collector writes directly to FROST, configured by `FROST_URL` (e.g. `http://frost:8080/FROST-Server/v1.1`). Run the tests in `collector/` with `python -m unittest discover -s tests`. The CI additionally runs `ruff check` and builds the image `collector:dev` on `main`, like for the frontend.
+The collector writes directly to FROST, configured by `FROST_URL` (e.g. `http://frost:8080/FROST-Server/v1.1`). Run the tests in `collector/` with `uv run pytest` the linter with `uv run ruff check` and the formatter with `uv run ruff format`. The CI runs all three and builds the image `collector:dev` on `main`, like for the frontend. The image is based on the Python image of Red Hat and contains no uv, so building it downloads nothing besides the base image.
 
 ### Basemap
 

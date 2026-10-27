@@ -33,8 +33,8 @@ def _parse_garage(index: int, entry: dict) -> Garage:
     expected_keys = {"pNumber", "name", "address", "operatorUrl", "location", "entrances"}
     if set(entry) != expected_keys:
         raise ValueError(f"{where}: expected exactly the keys {sorted(expected_keys)}, got {sorted(entry)}")
-    if not entry["pNumber"]:
-        raise ValueError(f"{where}: pNumber must not be empty")
+    if not isinstance(entry["pNumber"], str) or not entry["pNumber"]:
+        raise ValueError(f"{where}: pNumber must be a non-empty string, got {entry['pNumber']!r}")
     if not entry["name"]:
         raise ValueError(f"{where}: name must not be empty")
     if not entry["entrances"]:

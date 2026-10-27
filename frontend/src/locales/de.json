@@ -4,8 +4,13 @@
       "label": "Karte von München",
       "loadError": "Die Karte konnte nicht geladen werden.",
       "garage": "{name}: {free} von {capacity} frei",
+      "garageOutdated": "{name}: {free} von {capacity} frei, Stand veraltet",
+      "garageWithoutCapacity": "{name}: {free} frei",
+      "garageWithoutCapacityOutdated": "{name}: {free} frei, Stand veraltet",
       "garageWithoutData": "{name}: keine Daten",
-      "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden."
+      "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden.",
+      "garagesRefreshError": "Die Belegung konnte nicht aktualisiert werden.",
+      "dismissGaragesError": "Verwerfen"
     },
     "theSettings": {
       "open": "Einstellungen öffnen",
@@ -19,15 +24,57 @@
       },
       "language": "Sprache",
       "systemLanguage": "Gerätesprache ({language})",
+      "mapApp": "Routenplanung",
+      "askEveryTime": "Jedes Mal fragen",
       "legal": "Rechtliches",
       "imprint": "Impressum",
       "privacy": "Datenschutzerklärung",
       "accessibility": "Barrierefreiheitserklärung",
       "sourceCode": "Quellcode auf GitHub"
     },
+    "garageDetails": {
+      "close": "Details schließen",
+      "ofCapacityFree": "von {capacity} frei",
+      "free": "frei",
+      "occupancy": "Belegung",
+      "occupied": "{percent} belegt",
+      "updated": "Stand: {time}",
+      "noData": "Keine aktuellen Belegungsdaten",
+      "route": "Route",
+      "share": "Teilen",
+      "linkCopied": "Link kopiert",
+      "shareError": "Der Link konnte nicht geteilt werden."
+    },
+    "garageList": {
+      "title": "Parkhäuser",
+      "free": "{free} frei",
+      "occupied": "{percent} belegt",
+      "noData": "Keine Daten",
+      "loading": "Parkhäuser werden geladen",
+      "loadError": "Die Parkhäuser konnten nicht geladen werden.",
+      "empty": "Keine Parkhäuser verfügbar.",
+      "close": "Liste schließen"
+    },
+    "garageRouteDialog": {
+      "title": "Route zu {name}",
+      "toEntrance": "Ziel: Einfahrt des Parkhauses",
+      "remember": "Auswahl merken",
+      "cancel": "Abbrechen"
+    },
     "legalPage": {
       "back": "Zurück zur Karte",
       "germanOnly": "Diese Seite ist nur auf Deutsch verfügbar."
     }
+  },
+  "routes": {
+    "index": {
+      "showList": "Liste anzeigen"
+    }
+  },
+  "mapApps": {
+    "apple": "Apple Karten",
+    "google": "Google Maps",
+    "osm": "OpenStreetMap",
+    "waze": "Waze"
   }
 }

@@ -13,62 +13,32 @@
         :aria-label="t('components.theSettings.open')"
         position="fixed"
         location="top end"
-        border
       />
     </template>
 
     <!-- A menu taller than the space below its button is shifted over the button, so it scrolls instead -->
-    <v-card
-      class="d-flex flex-column"
-      :width="xs ? undefined : 360"
+    <panel-card
       :max-height="xs ? undefined : MENU_MAX_HEIGHT"
-      :rounded="xs ? 0 : 'lg'"
-      :border="!xs"
+      :title="t('components.theSettings.title')"
+      :close-label="t('components.theSettings.close')"
+      @close="isOpen = false"
     >
-      <v-card-item class="py-3">
-        <template
-          v-if="xs"
-          #prepend
-        >
-          <v-icon-btn
-            data-test="settings-back-btn"
-            :icon="mdiArrowLeft"
-            :aria-label="t('components.theSettings.close')"
-            variant="text"
-            @click="isOpen = false"
-          />
-        </template>
-        <v-card-title>
-          {{ t("components.theSettings.title") }}
-        </v-card-title>
-        <template
-          v-if="!xs"
-          #append
-        >
-          <v-icon-btn
-            data-test="settings-close-btn"
-            :icon="mdiClose"
-            :aria-label="t('components.theSettings.close')"
-            variant="text"
-            @click="isOpen = false"
-          />
-        </template>
-      </v-card-item>
-
       <div class="flex-grow-1 overflow-y-auto">
-        <v-card-text>
+        <v-card-text class="pt-2">
           <h3
             id="settings-appearance-label"
-            class="text-label-large text-uppercase text-medium-emphasis mb-3"
+            class="text-label-large text-medium-emphasis mb-2"
           >
             {{ t("components.theSettings.appearance") }}
           </h3>
           <v-btn-toggle
             v-model="settingsStore.themePreference"
             class="w-100 h-auto pa-1 ga-1"
+            :class="{ 'bg-surface': xs }"
             aria-labelledby="settings-appearance-label"
+            rounded="lg"
+            :border="!xs"
             mandatory
-            border
           >
             <v-btn
               v-for="option in themeOptions"
@@ -80,32 +50,46 @@
               :text="option.label"
               variant="text"
               height="64"
+              rounded="md"
               stacked
             />
           </v-btn-toggle>
 
           <h3
             id="settings-language-label"
-            class="text-label-large text-uppercase text-medium-emphasis mt-6 mb-3"
+            class="text-label-large text-medium-emphasis mt-6 mb-2"
           >
             {{ t("components.theSettings.language") }}
           </h3>
-          <v-select
-            v-model="settingsStore.localePreference"
-            data-test="settings-language-select"
-            :items="localeOptions"
-            aria-labelledby="settings-language-label"
-            variant="outlined"
-            density="comfortable"
-            hide-details
-          />
+          <v-defaults-provider :defaults="selectDefaults">
+            <v-select
+              v-model="settingsStore.localePreference"
+              data-test="settings-language-select"
+              :items="localeOptions"
+              aria-labelledby="settings-language-label"
+            />
+
+            <h3
+              id="settings-map-app-label"
+              class="text-label-large text-medium-emphasis mt-6 mb-2"
+            >
+              {{ t("components.theSettings.mapApp") }}
+            </h3>
+            <v-select
+              v-model="settingsStore.mapAppPreference"
+              data-test="settings-map-app-select"
+              :items="mapAppOptions"
+              aria-labelledby="settings-map-app-label"
+            />
+          </v-defaults-provider>
         </v-card-text>
 
-        <v-divider class="mx-4" />
-
+        <!-- Leaving the map closes the settings, as they are kept in the address of the map -->
         <v-list
           tag="nav"
+          :class="xs ? 'mx-4 mb-4' : 'mx-2'"
           :aria-label="t('components.theSettings.legal')"
+          rounded="lg"
         >
           <v-list-item
             v-for="link in legalLinks"
@@ -114,16 +98,18 @@
             :to="link.to"
             :prepend-icon="mdiFileDocumentOutline"
             :title="link.label"
-            @click="isOpen = false"
+            rounded="lg"
           />
         </v-list>
       </div>
 
-      <v-divider />
+      <v-divider v-if="!xs" />
 
-      <v-card-text class="flex-grow-0 text-body-small text-medium-emphasis">
+      <v-card-text
+        class="flex-grow-0 py-4 text-body-small text-medium-emphasis"
+      >
         <a
-          class="d-inline-flex align-center ga-1 mt-2 text-medium-emphasis"
+          class="d-inline-flex align-center ga-1 text-medium-emphasis"
           :href="SOURCE_CODE_URL"
           target="_blank"
           rel="noopener noreferrer"
@@ -135,18 +121,20 @@
           {{ t("components.theSettings.sourceCode") }}
         </a>
       </v-card-text>
-    </v-card>
+    </panel-card>
   </component>
 </template>
 
 <script setup lang="ts">
 import type { Locale } from "@/plugins/i18n";
-import type { LocalePreference, ThemePreference } from "@/stores/settings";
+import type {
+  LocalePreference,
+  MapAppPreference,
+  ThemePreference,
+} from "@/stores/settings";
 
 import {
-  mdiArrowLeft,
   mdiCellphone,
-  mdiClose,
   mdiCog,
   mdiFileDocumentOutline,
   mdiGithub,
@@ -154,13 +142,17 @@ import {
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
 } from "@mdi/js";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 import { VDialog, VMenu } from "vuetify/components";
 
+import PanelCard from "@/components/PanelCard.vue";
+import { useMapAppNames } from "@/composables/useMapAppNames";
+import { useQueryState } from "@/composables/useQueryState";
 import { SUPPORTED_LOCALES } from "@/plugins/i18n";
 import { useSettingsStore } from "@/stores/settings";
+import { MAP_APPS } from "@/util/mapApps";
 
 const SOURCE_CODE_URL = "https://github.com/it-at-m/parkhausradar";
 // Space below the button (16px margin, 48px button, 8px offset) and a 16px gap to the bottom of the screen
@@ -171,11 +163,19 @@ const { xs } = useDisplay();
 
 const overlayProps = computed(() =>
   xs.value
-    ? { fullscreen: true, transition: "dialog-top-transition" }
+    ? {
+        fullscreen: true,
+        transition: "fade-transition",
+        // The back button already closes it through the address
+        closeOnBack: false,
+      }
     : ({
         location: "bottom end",
         offset: 8,
         closeOnContentClick: false,
+        closeOnBack: false,
+        // The menu clips the card to its own radius, which is the smaller one of dropdowns
+        contentClass: "rounded-xl",
       } as const)
 );
 
@@ -198,17 +198,24 @@ const themeOptions = computed<
     label: t("components.theSettings.theme.system"),
   },
 ]);
-const settingsStore = useSettingsStore();
-const isOpen = ref(false);
-
-const legalLinks = computed(() => [
-  { to: "/impressum", label: t("components.theSettings.imprint") },
-  { to: "/datenschutz", label: t("components.theSettings.privacy") },
-  {
-    to: "/barrierefreiheit",
-    label: t("components.theSettings.accessibility"),
+// On small screens the fields stand out on the gray background like the groups of the pages
+const selectDefaults = computed(() => ({
+  VSelect: {
+    variant: xs.value ? "solo" : "outlined",
+    flat: xs.value,
+    rounded: "lg",
+    density: "comfortable",
+    hideDetails: true,
   },
-]);
+}));
+const settingsStore = useSettingsStore();
+const mapAppNames = useMapAppNames();
+const query = useQueryState();
+// Kept in the address, so the back button closes the full screen page on small screens
+const isOpen = computed({
+  get: () => query.get("dialog") === "settings",
+  set: (open) => query.change({ dialog: open ? "settings" : undefined }),
+});
 
 // Languages are shown in their own language so users can find theirs regardless of the current locale
 function getLanguageName(locale: Locale): string {
@@ -231,4 +238,23 @@ const localeOptions = computed<{ value: LocalePreference; title: string }[]>(
     })),
   ]
 );
+
+const mapAppOptions = computed<{ value: MapAppPreference; title: string }[]>(
+  () => [
+    {
+      value: "ask",
+      title: t("components.theSettings.askEveryTime"),
+    },
+    ...MAP_APPS.map((app) => ({ value: app, title: mapAppNames.value[app] })),
+  ]
+);
+
+const legalLinks = computed(() => [
+  { to: "/impressum", label: t("components.theSettings.imprint") },
+  { to: "/datenschutz", label: t("components.theSettings.privacy") },
+  {
+    to: "/barrierefreiheit",
+    label: t("components.theSettings.accessibility"),
+  },
+]);
 </script>

@@ -28,7 +28,11 @@ class WriteObservationsTest(unittest.TestCase):
             frost.requests,
             [
                 [
-                    {"Datastream": {"@iot.id": datastream_id}, "components": ["phenomenonTime", "result"], "dataArray": [["2026-10-14T12:00:00+00:00", result]]}
+                    {
+                        "Datastream": {"@iot.id": datastream_id},
+                        "components": ["phenomenonTime", "result"],
+                        "dataArray": [["2026-10-14T12:00:00+00:00", result]],
+                    }
                     for datastream_id, result in ((1, 10), (2, 100), (3, 0), (4, 50))
                 ]
             ],

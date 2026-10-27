@@ -26,15 +26,30 @@ export default createVuetify({
           accent: "#7BA4D9",
           success: "#69BE28",
           error: "#FF0000",
+          // Behind the content of full screen pages, which forms groups on the surface color
+          "grouped-background": "#EEEEEE",
+        },
+        variables: {
+          "floating-shadow-opacity": 0.08,
+          "shadow-ring-color": "#000000",
+          "shadow-ring-opacity": 0.08,
         },
       },
       dark: {
         colors: {
-          primary: "#333333",
+          // Light, so primary buttons stand out on the dark surfaces
+          primary: "#E0E0E0",
           secondary: "#FFCC00",
           accent: "#90CAF9",
           success: "#81C784",
           error: "#E57373",
+          "grouped-background": "#121212",
+        },
+        // Shadows hardly show on a dark map, a light ring outlines the surfaces instead
+        variables: {
+          "floating-shadow-opacity": 0.35,
+          "shadow-ring-color": "#FFFFFF",
+          "shadow-ring-opacity": 0.12,
         },
       },
     },

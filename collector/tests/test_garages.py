@@ -35,6 +35,10 @@ class LoadGaragesTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected exactly the keys"):
             load([{**VALID, "capacity": 390}])
 
+    def test_rejects_a_p_number_that_is_not_a_string(self):
+        with self.assertRaisesRegex(ValueError, "pNumber"):
+            load([{**VALID, "pNumber": 19}])
+
     def test_rejects_a_garage_without_entrance(self):
         with self.assertRaisesRegex(ValueError, "entrances"):
             load([{**VALID, "entrances": []}])
