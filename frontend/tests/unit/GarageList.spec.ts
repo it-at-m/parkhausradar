@@ -88,7 +88,7 @@ describe("GarageList content", () => {
     ).toEqual(["Altstadt", "Oper", "Pschorr", "Überseequartier"]);
   });
 
-  test("shows the address of a garage after its occupancy", async () => {
+  test("shows the address of a garage below its name", async () => {
     // given
     vi.mocked(getGarages).mockResolvedValue([
       createGarage("P1", "Oper", { address: "Max-Joseph-Platz 4" }),
@@ -98,12 +98,9 @@ describe("GarageList content", () => {
     await mountList();
 
     // then
-    expect(
-      items()[0]
-        ?.get("[data-test=garage-list-subtitle]")
-        .text()
-        .replace(/\s/g, " ")
-    ).toBe("22 % belegt · Max-Joseph-Platz 4");
+    expect(items()[0]?.get("[data-test=garage-list-address]").text()).toBe(
+      "Max-Joseph-Platz 4"
+    );
   });
 
   test.for([
@@ -143,7 +140,10 @@ describe("GarageList content", () => {
       );
       // Percentages are separated by a non-breaking space
       expect(
-        item?.get("[data-test=garage-list-subtitle]").text().replace(/\s/g, " ")
+        item
+          ?.get("[data-test=garage-list-occupancy]")
+          .text()
+          .replace(/\s/g, " ")
       ).toBe(occupancy);
     }
   );
@@ -254,19 +254,5 @@ describe("GarageList interaction", () => {
 
     // then
     expect(wrapper?.emitted("close")).toBeUndefined();
-  });
-
-  test("returns the focus to the garage when its details close", async () => {
-    // given
-    const oper = createGarage("P1", "Oper");
-    vi.mocked(getGarages).mockResolvedValue([oper]);
-    await mountList(oper);
-    (document.activeElement as HTMLElement | null)?.blur();
-
-    // when
-    await wrapper?.setProps({ selectedGarage: null });
-
-    // then
-    expect(document.activeElement).toBe(items()[0]?.element);
   });
 });

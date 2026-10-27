@@ -23,9 +23,14 @@ import IndexRoute from "../../src/routes/index.vue";
 
 vi.mock("../../src/api/garages-client", () => ({ getGarages: vi.fn() }));
 
+const focusMarker = vi.fn();
+
 // MapLibre needs WebGL, the map is replaced by a stand-in that only shows the selected garage
 const TheMapStub = defineComponent({
   props: { selectedGarage: { type: Object, default: null } },
+  setup(_, { expose }) {
+    expose({ focusMarker });
+  },
   template: `<div data-test="map">{{ selectedGarage?.name }}</div>`,
 });
 
@@ -41,6 +46,7 @@ const OPER: Garage = {
 };
 
 const DESKTOP_WIDTH = 1024;
+const TABLET_WIDTH = 768;
 const MOBILE_WIDTH = 375;
 
 let wrapper: VueWrapper | undefined;
@@ -129,6 +135,7 @@ afterEach(() => {
   wrapper?.unmount();
   wrapper = undefined;
   vi.mocked(getGarages).mockReset();
+  focusMarker.mockReset();
   document.body.innerHTML = "";
 });
 
@@ -214,7 +221,9 @@ describe("index list closing", () => {
     // when
     await navigation(() =>
       document
-        .querySelector<HTMLElement>("[data-test=garage-list-back-btn]")
+        .querySelector<HTMLElement>(
+          "[data-test=garage-list] [data-test=panel-back-btn]"
+        )
         ?.click()
     );
 
@@ -259,6 +268,41 @@ describe("index garage selection on small screens", () => {
     expect(listShown()).toBe(true);
     expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
     expect(wrapper?.get("[data-test=map]").text()).toBe("");
+  });
+});
+
+describe("index focus after closing the details", () => {
+  test("returns the focus to the marker if the list is not shown", async () => {
+    // given
+    await mountIndex("/?view=list");
+    await wrapper?.get("[data-test=garage-list-item]").trigger("click");
+    await navigation(() => toggle().trigger("click"));
+
+    const closeButton = wrapper?.get("[data-test=garage-details-close-btn]");
+    (closeButton?.element as HTMLElement | undefined)?.focus();
+
+    // when
+    await closeButton?.trigger("click");
+    await flushPromises();
+
+    // then
+    expect(focusMarker).toHaveBeenCalledWith("P1");
+  });
+});
+
+describe("index garage selection on medium screens", () => {
+  test("closes the list when a garage is selected, as the details do not fit next to it", async () => {
+    // given
+    setScreenWidth(TABLET_WIDTH);
+    await mountIndex("/?view=list");
+
+    // when
+    await navigation(() => firstListItem().click());
+
+    // then
+    expect(listShown()).toBe(false);
+    expect(router.currentRoute.value.query).toEqual({});
+    expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
   });
 });
 

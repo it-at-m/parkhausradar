@@ -1,11 +1,11 @@
 <template>
   <teleport :to="container">
     <button
-      ref="button"
       type="button"
       class="garage-marker"
       :class="{ selected }"
       data-test="garage-marker"
+      :data-p-number="garage.pNumber"
       :aria-label="label"
       :aria-expanded="selected"
       @click="emit('select')"
@@ -37,7 +37,7 @@ import type { Garage } from "@/types/Garage";
 import type { Map as MapLibreMap } from "maplibre-gl";
 
 import { Marker } from "maplibre-gl";
-import { computed, onBeforeUnmount, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import {
@@ -45,7 +45,6 @@ import {
   PARKING_SYMBOL,
   UNKNOWN_FREE_SPACES,
 } from "@/constants";
-import { isFocusInClosedDetails } from "@/util/focus";
 import { getGarageStatus, isGarageDataOutdated } from "@/util/garageStatus";
 
 const props = defineProps<{
@@ -72,7 +71,6 @@ const freeSpaces = computed(
 const colors = computed(
   () => GARAGE_STATUS_COLORS[getGarageStatus(props.garage, props.now)]
 );
-const button = useTemplateRef("button");
 
 // Read by screen readers, as the visible content is only a number
 const label = computed(() => {
@@ -106,15 +104,11 @@ watch(
 
 watch(
   () => props.selected,
-  (selected, wasSelected) => {
+  (selected) => {
     // Brings the selected marker in front of its neighbours
     container.style.zIndex = selected ? "1" : "";
-    // Keyboard users closing the details continue at the marker instead of the start of the page
-    if (wasSelected && !selected && isFocusInClosedDetails()) {
-      button.value?.focus({ preventScroll: true });
-    }
   },
-  { immediate: true, flush: "post" }
+  { immediate: true }
 );
 
 onBeforeUnmount(() => marker.remove());
