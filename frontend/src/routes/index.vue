@@ -56,9 +56,8 @@ import type { ComponentPublicInstance } from "vue";
 
 import { mdiFormatListBulleted } from "@mdi/js";
 import { useElementBounding, useElementSize } from "@vueuse/core";
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
 import {
   VDialog,
@@ -70,13 +69,15 @@ import {
 import GarageDetails from "@/components/GarageDetails.vue";
 import GarageList from "@/components/GarageList.vue";
 import TheMap from "@/components/TheMap.vue";
+import { useGarages } from "@/composables/useGarages";
+import { useQueryState } from "@/composables/useQueryState";
 import { isFocusInClosedDetails } from "@/util/focus";
+import { GARAGE_LINK_QUERY } from "@/util/garageLink";
 
 const { t } = useI18n();
 const { xs, smAndDown } = useDisplay();
-const route = useRoute();
-const router = useRouter();
-const selectedGarage = ref<Garage | null>(null);
+const query = useQueryState();
+const { garages, loaded } = useGarages();
 const details = useTemplateRef("details");
 const list = useTemplateRef("list");
 const map = useTemplateRef("map");
@@ -91,8 +92,25 @@ const { width: detailsWidth, height: detailsHeight } = useElementSize(
 );
 const { right: panelRowRight } = useElementBounding(useTemplateRef("panelRow"));
 
-// Kept in the URL, so the back button returns from the list to the map
-const listShown = computed(() => route.query.view === "list");
+// Kept in the address, so the back button closes the list and the details and shared links open them
+const listShown = computed(() => query.get("view") === "list");
+const selectedPNumber = computed(() => query.get(GARAGE_LINK_QUERY));
+
+// The list and the details only fit next to each other on larger screens, otherwise one of them is shown
+const selectedGarage = computed<Garage | null>({
+  get: () =>
+    garages.value.find((garage) => garage.pNumber === selectedPNumber.value) ??
+    null,
+  set: (garage) => {
+    if (garage?.pNumber === selectedPNumber.value) {
+      return;
+    }
+    query.change({
+      [GARAGE_LINK_QUERY]: garage?.pNumber,
+      ...(garage && smAndDown.value && { view: undefined }),
+    });
+  },
+});
 
 const listOverlayProps = computed(() =>
   xs.value
@@ -100,7 +118,7 @@ const listOverlayProps = computed(() =>
         modelValue: listShown.value,
         fullscreen: true,
         transition: "fade-transition",
-        // The back button already closes it through the URL
+        // The back button already closes it through the address
         closeOnBack: false,
         "onUpdate:modelValue": closeList,
       }
@@ -118,37 +136,29 @@ const mapInset = computed(() => {
 });
 
 function showList() {
-  router.push({ query: { ...route.query, view: "list" } });
-}
-
-function showMap() {
-  const mapLocation = router.resolve({
-    query: { ...route.query, view: undefined },
+  query.change({
+    view: "list",
+    ...(smAndDown.value && { [GARAGE_LINK_QUERY]: undefined }),
   });
-  // Going back instead of adding an entry, so the back button does not lead to the list again
-  if (router.options.history.state.back === mapLocation.fullPath) {
-    router.back();
-  } else {
-    router.replace(mapLocation);
-  }
 }
 
 // The list unmounts with the focus inside, keyboard users continue at the toggle
 function closeList() {
-  showMap();
+  query.change({ view: undefined });
   viewToggleElement.value?.focus();
 }
 
-// The list and the details only fit next to each other on larger screens, otherwise one of them is shown
-watch(listShown, (shown) => {
-  if (shown && smAndDown.value) {
-    selectedGarage.value = null;
+// Links to garages that do not exist, or no longer do, only show the map
+watch([loaded, selectedPNumber], () => {
+  if (loaded.value && selectedPNumber.value && !selectedGarage.value) {
+    query.change({ [GARAGE_LINK_QUERY]: undefined });
   }
 });
 
-watch(selectedGarage, (garage) => {
-  if (garage && listShown.value && smAndDown.value) {
-    showMap();
+// Screens that shrink below the size for both keep the details, which are more specific than the list
+watch(smAndDown, (small) => {
+  if (small && listShown.value && selectedPNumber.value) {
+    query.change({ view: undefined });
   }
 });
 

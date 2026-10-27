@@ -37,7 +37,8 @@ export default createVuetify({
       },
       dark: {
         colors: {
-          primary: "#333333",
+          // Light, so primary buttons stand out on the dark surfaces
+          primary: "#E0E0E0",
           secondary: "#FFCC00",
           accent: "#90CAF9",
           success: "#81C784",

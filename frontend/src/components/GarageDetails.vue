@@ -134,7 +134,34 @@
             {{ t("components.garageDetails.noData") }}
           </p>
         </v-sheet>
+
+        <v-defaults-provider :defaults="ACTION_BUTTON_DEFAULTS">
+          <div class="d-flex ga-2 mt-3">
+            <!-- Opens the remembered app directly, otherwise lets users choose one -->
+            <v-btn
+              data-test="garage-details-route-btn"
+              :href="routeUrl"
+              :target="routeUrl ? '_blank' : undefined"
+              rel="noopener noreferrer"
+              :prepend-icon="mdiDirections"
+              :text="t('components.garageDetails.route')"
+              color="primary"
+              @click="showRoute"
+            />
+            <v-btn
+              data-test="garage-details-share-btn"
+              :prepend-icon="mdiShareVariant"
+              :text="t('components.garageDetails.share')"
+              :color="innerSurfaceColor"
+              @click="share"
+            />
+          </div>
+        </v-defaults-provider>
       </v-card-text>
+      <garage-route-dialog
+        v-model="routeDialogShown"
+        :garage="garage"
+      />
     </v-card>
   </section>
 </template>
@@ -142,15 +169,30 @@
 <script setup lang="ts">
 import type { Garage } from "@/types/Garage";
 
-import { mdiClose, mdiMapMarker } from "@mdi/js";
+import {
+  mdiClose,
+  mdiDirections,
+  mdiMapMarker,
+  mdiShareVariant,
+} from "@mdi/js";
 import { useEventListener, useIntervalFn, useNow } from "@vueuse/core";
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 
-import { GARAGE_STATUS_COLORS, PARKING_SYMBOL } from "@/constants";
+import GarageRouteDialog from "@/components/GarageRouteDialog.vue";
+import { useQueryState } from "@/composables/useQueryState";
+import {
+  GARAGE_STATUS_COLORS,
+  PARKING_SYMBOL,
+  STATUS_INDICATORS,
+} from "@/constants";
+import { useSettingsStore } from "@/stores/settings";
+import { useSnackbarStore } from "@/stores/snackbar";
 import { toPercentString, toRelativeTimeString } from "@/util/formatter";
+import { getGarageLink } from "@/util/garageLink";
 import { getGarageStatus, getOccupancy } from "@/util/garageStatus";
+import { getRouteUrl } from "@/util/mapApps";
 import { isOverlayOpen } from "@/util/overlay";
 
 const props = defineProps<{
@@ -160,6 +202,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: [];
 }>();
+
+const ACTION_BUTTON_DEFAULTS = {
+  VBtn: { class: "flex-1-1-0", variant: "flat", size: "large", rounded: "lg" },
+};
 
 // Distance the sheet has to be dragged down on mobile to close it
 const CLOSE_DRAG_DISTANCE = 80;
@@ -182,6 +228,52 @@ const innerSurfaceColor = computed(() =>
 const colors = computed(
   () => GARAGE_STATUS_COLORS[getGarageStatus(props.garage, now.value)]
 );
+
+const settingsStore = useSettingsStore();
+const snackbarStore = useSnackbarStore();
+const query = useQueryState();
+// Kept in the address, so the back button closes the dialog before the details
+const routeDialogShown = computed({
+  get: () => query.get("dialog") === "route",
+  set: (shown) => query.change({ dialog: shown ? "route" : undefined }),
+});
+
+const routeUrl = computed(() =>
+  settingsStore.mapAppPreference === "ask"
+    ? undefined
+    : getRouteUrl(settingsStore.mapAppPreference, props.garage)
+);
+
+function showRoute() {
+  if (!routeUrl.value) {
+    routeDialogShown.value = true;
+  }
+}
+
+// The share sheet of the device where there is one, otherwise the link is copied
+async function share() {
+  const url = getGarageLink(props.garage.pNumber);
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: props.garage.name, url });
+    } else {
+      await navigator.clipboard.writeText(url);
+      snackbarStore.push({
+        text: t("components.garageDetails.linkCopied"),
+        color: STATUS_INDICATORS.SUCCESS,
+      });
+    }
+  } catch (error) {
+    // Closing the share sheet without choosing a target is no error
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return;
+    }
+    snackbarStore.push({
+      text: t("components.garageDetails.shareError"),
+      color: STATUS_INDICATORS.ERROR,
+    });
+  }
+}
 
 const dragOffset = ref<number | null>(null);
 let dragStartY: number | null = null;

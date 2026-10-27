@@ -10,6 +10,7 @@ import i18n from "../../src/plugins/i18n";
 import vuetify from "../../src/plugins/vuetify";
 
 const LOCALE_KEY = "parkhausradar.localePreference";
+const MAP_APP_KEY = "parkhausradar.mapAppPreference";
 
 let wrapper: VueWrapper | undefined;
 
@@ -60,6 +61,7 @@ async function mountApp(deviceLanguages: string[]) {
     global: { plugins: [router, createPinia(), i18n, vuetify] },
   });
   await flushPromises();
+  return router;
 }
 
 function findByDataTest(dataTest: string): HTMLElement {
@@ -102,11 +104,15 @@ function getSelectedLanguage(): string {
   return input.value;
 }
 
-async function openLanguageSelect() {
-  findByDataTest("settings-language-select")
+async function openSelect(dataTest: string) {
+  findByDataTest(dataTest)
     .querySelector('[role="combobox"]')
     ?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
   await flushPromises();
+}
+
+async function openLanguageSelect() {
+  await openSelect("settings-language-select");
 }
 
 function getLanguageOptions(): string[] {
@@ -115,16 +121,47 @@ function getLanguageOptions(): string[] {
   );
 }
 
-async function selectLanguage(name: string) {
-  await openLanguageSelect();
+async function selectOption(dataTest: string, name: string) {
+  await openSelect(dataTest);
   const option = [
     ...document.querySelectorAll<HTMLElement>('[role="option"]'),
   ].find((option) => option.textContent.trim() === name);
   if (!option) {
-    throw new Error(`No language option "${name}"`);
+    throw new Error(`No option "${name}" in ${dataTest}`);
   }
   await click(option);
 }
+
+async function selectLanguage(name: string) {
+  await selectOption("settings-language-select", name);
+}
+
+describe("TheSettings opening", () => {
+  test("closes with the back button", async () => {
+    // given
+    const router = await mountApp(["de-DE"]);
+    await openSettings();
+
+    // Vuetify delays navigations while the selects are mounted, the test waits until it is done
+    const navigated = new Promise<void>((resolve) => {
+      const remove = router.afterEach(() => {
+        remove();
+        resolve();
+      });
+    });
+
+    // when
+    router.back();
+    await navigated;
+    await flushPromises();
+
+    // then
+    expect(
+      findByDataTest("settings-open-btn").getAttribute("aria-expanded")
+    ).toBe("false");
+    expect(router.currentRoute.value.query).toEqual({});
+  });
+});
 
 describe("TheSettings theme", () => {
   test("applies the selected theme", async () => {
@@ -201,5 +238,32 @@ describe("TheSettings language", () => {
     expect(document.documentElement.lang).toBe("de");
     expect(getSelectedLanguage()).toBe("Deutsch");
     expect(localStorage.getItem(LOCALE_KEY)).toBe("de");
+  });
+});
+
+describe("TheSettings route planning", () => {
+  test("remembers the map app for routes", async () => {
+    // given
+    await mountApp(["de-DE"]);
+    await openSettings();
+
+    // when
+    await selectOption("settings-map-app-select", "Google Maps");
+
+    // then
+    expect(localStorage.getItem(MAP_APP_KEY)).toBe("google");
+  });
+
+  test("asks again for the map app once that is selected", async () => {
+    // given
+    localStorage.setItem(MAP_APP_KEY, "waze");
+    await mountApp(["de-DE"]);
+    await openSettings();
+
+    // when
+    await selectOption("settings-map-app-select", "Jedes Mal fragen");
+
+    // then
+    expect(localStorage.getItem(MAP_APP_KEY)).toBe("ask");
   });
 });

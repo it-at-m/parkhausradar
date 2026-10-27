@@ -24,6 +24,8 @@
       },
       "language": "Language",
       "systemLanguage": "Device language ({language})",
+      "mapApp": "Route planning",
+      "askEveryTime": "Ask every time",
       "sourceCode": "Source code on GitHub"
     },
     "garageDetails": {
@@ -33,7 +35,11 @@
       "occupancy": "Occupancy",
       "occupied": "{percent} occupied",
       "updated": "Updated {time}",
-      "noData": "No current occupancy data"
+      "noData": "No current occupancy data",
+      "route": "Route",
+      "share": "Share",
+      "linkCopied": "Link copied",
+      "shareError": "The link could not be shared."
     },
     "garageList": {
       "title": "Parking garages",
@@ -44,11 +50,23 @@
       "loadError": "The parking garages could not be loaded.",
       "empty": "No parking garages available.",
       "close": "Close list"
+    },
+    "garageRouteDialog": {
+      "title": "Route to {name}",
+      "toEntrance": "Destination: entrance of the garage",
+      "remember": "Remember choice",
+      "cancel": "Cancel"
     }
   },
   "routes": {
     "index": {
       "showList": "Show list"
     }
+  },
+  "mapApps": {
+    "apple": "Apple Maps",
+    "google": "Google Maps",
+    "osm": "OpenStreetMap",
+    "waze": "Waze"
   }
 }

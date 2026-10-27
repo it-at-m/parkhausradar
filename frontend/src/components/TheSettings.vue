@@ -58,17 +58,27 @@
         >
           {{ t("components.theSettings.language") }}
         </h3>
-        <v-select
-          v-model="settingsStore.localePreference"
-          data-test="settings-language-select"
-          :items="localeOptions"
-          aria-labelledby="settings-language-label"
-          :variant="xs ? 'solo' : 'outlined'"
-          :flat="xs"
-          rounded="lg"
-          density="comfortable"
-          hide-details
-        />
+        <v-defaults-provider :defaults="selectDefaults">
+          <v-select
+            v-model="settingsStore.localePreference"
+            data-test="settings-language-select"
+            :items="localeOptions"
+            aria-labelledby="settings-language-label"
+          />
+
+          <h3
+            id="settings-map-app-label"
+            class="text-label-large text-medium-emphasis mt-6 mb-2"
+          >
+            {{ t("components.theSettings.mapApp") }}
+          </h3>
+          <v-select
+            v-model="settingsStore.mapAppPreference"
+            data-test="settings-map-app-select"
+            :items="mapAppOptions"
+            aria-labelledby="settings-map-app-label"
+          />
+        </v-defaults-provider>
       </v-card-text>
 
       <v-divider v-if="!xs" />
@@ -95,7 +105,11 @@
 
 <script setup lang="ts">
 import type { Locale } from "@/plugins/i18n";
-import type { LocalePreference, ThemePreference } from "@/stores/settings";
+import type {
+  LocalePreference,
+  MapAppPreference,
+  ThemePreference,
+} from "@/stores/settings";
 
 import {
   mdiCellphone,
@@ -105,14 +119,17 @@ import {
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
 } from "@mdi/js";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 import { VDialog, VMenu } from "vuetify/components";
 
 import PanelCard from "@/components/PanelCard.vue";
+import { useMapAppNames } from "@/composables/useMapAppNames";
+import { useQueryState } from "@/composables/useQueryState";
 import { SUPPORTED_LOCALES } from "@/plugins/i18n";
 import { useSettingsStore } from "@/stores/settings";
+import { MAP_APPS } from "@/util/mapApps";
 
 const SOURCE_CODE_URL = "https://github.com/it-at-m/parkhausradar";
 
@@ -121,11 +138,17 @@ const { xs } = useDisplay();
 
 const overlayProps = computed(() =>
   xs.value
-    ? { fullscreen: true, transition: "fade-transition" }
+    ? {
+        fullscreen: true,
+        transition: "fade-transition",
+        // The back button already closes it through the address
+        closeOnBack: false,
+      }
     : ({
         location: "bottom end",
         offset: 8,
         closeOnContentClick: false,
+        closeOnBack: false,
         // The menu clips the card to its own radius, which is the smaller one of dropdowns
         contentClass: "rounded-xl",
       } as const)
@@ -150,8 +173,24 @@ const themeOptions = computed<
     label: t("components.theSettings.theme.system"),
   },
 ]);
+// On small screens the fields stand out on the gray background like the groups of the pages
+const selectDefaults = computed(() => ({
+  VSelect: {
+    variant: xs.value ? "solo" : "outlined",
+    flat: xs.value,
+    rounded: "lg",
+    density: "comfortable",
+    hideDetails: true,
+  },
+}));
 const settingsStore = useSettingsStore();
-const isOpen = ref(false);
+const mapAppNames = useMapAppNames();
+const query = useQueryState();
+// Kept in the address, so the back button closes the full screen page on small screens
+const isOpen = computed({
+  get: () => query.get("dialog") === "settings",
+  set: (open) => query.change({ dialog: open ? "settings" : undefined }),
+});
 
 // Languages are shown in their own language so users can find theirs regardless of the current locale
 function getLanguageName(locale: Locale): string {
@@ -172,6 +211,16 @@ const localeOptions = computed<{ value: LocalePreference; title: string }[]>(
       value: locale,
       title: getLanguageName(locale),
     })),
+  ]
+);
+
+const mapAppOptions = computed<{ value: MapAppPreference; title: string }[]>(
+  () => [
+    {
+      value: "ask",
+      title: t("components.theSettings.askEveryTime"),
+    },
+    ...MAP_APPS.map((app) => ({ value: app, title: mapAppNames.value[app] })),
   ]
 );
 </script>
