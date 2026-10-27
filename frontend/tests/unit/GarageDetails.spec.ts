@@ -1,6 +1,7 @@
 import type { VueWrapper } from "@vue/test-utils";
 
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { nextTick } from "vue";
 import { VDialog, VSnackbar } from "vuetify/components";
@@ -10,6 +11,8 @@ import type { Garage } from "../../src/types/Garage";
 import GarageDetails from "../../src/components/GarageDetails.vue";
 import i18n from "../../src/plugins/i18n";
 import vuetify from "../../src/plugins/vuetify";
+import { useSettingsStore } from "../../src/stores/settings";
+import { useSnackbarStore } from "../../src/stores/snackbar";
 
 const NOW = new Date("2026-10-21T12:00:00Z");
 const MINUTE = 60_000;
@@ -17,6 +20,7 @@ const DESKTOP_WIDTH = 1024;
 const MOBILE_WIDTH = 375;
 
 let overlay: VueWrapper | undefined;
+let pinia: ReturnType<typeof createPinia>;
 
 function createGarage(overrides: Partial<Garage> = {}): Garage {
   return {
@@ -39,8 +43,41 @@ function mountDetails(garage: Garage) {
   return mount(GarageDetails, {
     props: { garage },
     attachTo: document.body,
-    global: { plugins: [i18n, vuetify] },
+    global: { plugins: [pinia, i18n, vuetify] },
   });
+}
+
+// jsdom lacks the viewport API Vuetify uses to position overlays
+function stubVisualViewport() {
+  vi.stubGlobal("visualViewport", {
+    width: DESKTOP_WIDTH,
+    height: 768,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  });
+}
+
+// jsdom has neither a share sheet nor a clipboard
+function stubNavigator(property: "share" | "clipboard", value: unknown) {
+  Object.defineProperty(navigator, property, { value, configurable: true });
+}
+
+function routeLink(app: string): HTMLAnchorElement {
+  const link = document.querySelector<HTMLAnchorElement>(
+    `[data-test=garage-route-${app}-link]`
+  );
+  if (!link) {
+    throw new Error(`No route link for ${app}`);
+  }
+  return link;
+}
+
+function isRouteDialogShown(): boolean {
+  return (
+    document.querySelector(
+      ".v-overlay--active [data-test=garage-route-dialog]"
+    ) !== null
+  );
 }
 
 // jsdom has no PointerEvent, a MouseEvent of the same type carries everything the sheet reads
@@ -58,6 +95,8 @@ async function setScreenWidth(width: number) {
 beforeEach(() => {
   vi.useFakeTimers({ now: NOW });
   i18n.global.locale.value = "de";
+  pinia = createPinia();
+  setActivePinia(pinia);
   // jsdom has no pointer capture, the sheet uses it to keep receiving moves outside of itself
   Element.prototype.setPointerCapture = vi.fn();
 });
@@ -67,6 +106,9 @@ afterEach(async () => {
   overlay = undefined;
   vi.unstubAllGlobals();
   vi.useRealTimers();
+  Reflect.deleteProperty(navigator, "share");
+  Reflect.deleteProperty(navigator, "clipboard");
+  localStorage.clear();
   document.body.innerHTML = "";
   await setScreenWidth(DESKTOP_WIDTH);
 });
@@ -191,13 +233,7 @@ describe("GarageDetails closing", () => {
     "Escape with an open $overlay closes the details: $closes",
     async ({ component, closes }) => {
       // given
-      // jsdom lacks the viewport API Vuetify uses to position overlays
-      vi.stubGlobal("visualViewport", {
-        width: DESKTOP_WIDTH,
-        height: 768,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      });
+      stubVisualViewport();
       overlay = mount(component, {
         props: { modelValue: true },
         slots: { default: "Overlay" },
@@ -247,4 +283,162 @@ describe("GarageDetails focus", () => {
     // then
     expect(document.activeElement).toBe(wrapper.element);
   });
+});
+
+describe("GarageDetails route", () => {
+  beforeEach(stubVisualViewport);
+
+  async function openRouteDialog(wrapper: ReturnType<typeof mountDetails>) {
+    await wrapper.get("[data-test=garage-details-route-btn]").trigger("click");
+    await flushPromises();
+  }
+
+  // The link would open a new tab, which jsdom cannot
+  async function chooseMapApp(app: string) {
+    window.addEventListener("click", (event) => event.preventDefault(), {
+      once: true,
+    });
+    routeLink(app).click();
+    await flushPromises();
+  }
+
+  test("lets users choose the map app, which opens in a new tab", async () => {
+    // given
+    const wrapper = mountDetails(createGarage());
+
+    // when
+    await openRouteDialog(wrapper);
+
+    // then
+    expect(isRouteDialogShown()).toBe(true);
+    expect(
+      ["apple", "google", "osm", "waze"].map((app) => routeLink(app).target)
+    ).toEqual(["_blank", "_blank", "_blank", "_blank"]);
+  });
+
+  test("opens the remembered map app directly", async () => {
+    // given
+    useSettingsStore().mapAppPreference = "waze";
+    const wrapper = mountDetails(createGarage());
+    const button = wrapper.get("[data-test=garage-details-route-btn]");
+
+    // when
+    await button.trigger("click");
+    await flushPromises();
+
+    // then
+    expect(new URL(button.attributes("href") ?? "").host).toBe("waze.com");
+    expect(button.attributes("target")).toBe("_blank");
+    expect(isRouteDialogShown()).toBe(false);
+  });
+
+  test("remembers the chosen map app if asked to", async () => {
+    // given
+    const wrapper = mountDetails(createGarage());
+    await openRouteDialog(wrapper);
+    document
+      .querySelector<HTMLInputElement>(
+        "[data-test=garage-route-remember-checkbox] input"
+      )
+      ?.click();
+
+    // when
+    await chooseMapApp("osm");
+
+    // then
+    expect(useSettingsStore().mapAppPreference).toBe("osm");
+    expect(isRouteDialogShown()).toBe(false);
+  });
+
+  test("asks again next time if the chosen map app is not remembered", async () => {
+    // given
+    const wrapper = mountDetails(createGarage());
+    await openRouteDialog(wrapper);
+
+    // when
+    await chooseMapApp("osm");
+
+    // then
+    expect(useSettingsStore().mapAppPreference).toBe("ask");
+    expect(isRouteDialogShown()).toBe(false);
+  });
+});
+
+describe("GarageDetails sharing", () => {
+  function sharedUrl(url: string) {
+    const { pathname, searchParams } = new URL(url);
+    return { pathname, garage: searchParams.get("garage") };
+  }
+
+  test("shares a link to the garage with the share sheet of the device", async () => {
+    // given
+    const share = vi.fn().mockResolvedValue(undefined);
+    stubNavigator("share", share);
+    const wrapper = mountDetails(createGarage());
+
+    // when
+    await wrapper.get("[data-test=garage-details-share-btn]").trigger("click");
+    await flushPromises();
+
+    // then
+    expect(share).toHaveBeenCalledWith({
+      title: "Oper",
+      url: expect.any(String),
+    });
+    expect(sharedUrl(share.mock.calls[0]?.[0].url)).toEqual({
+      pathname: "/",
+      garage: "P1",
+    });
+  });
+
+  test("copies the link without a share sheet", async () => {
+    // given
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    stubNavigator("clipboard", { writeText });
+    const wrapper = mountDetails(createGarage());
+
+    // when
+    await wrapper.get("[data-test=garage-details-share-btn]").trigger("click");
+    await flushPromises();
+
+    // then
+    expect(sharedUrl(writeText.mock.calls[0]?.[0])).toEqual({
+      pathname: "/",
+      garage: "P1",
+    });
+    expect(useSnackbarStore().queue.map(({ text }) => text)).toEqual([
+      "Link kopiert",
+    ]);
+  });
+
+  test.for([
+    {
+      case: "is closed",
+      error: new DOMException("", "AbortError"),
+      messages: [],
+    },
+    {
+      case: "fails",
+      error: new DOMException("", "NotAllowedError"),
+      messages: ["Der Link konnte nicht geteilt werden."],
+    },
+  ])(
+    "reports only real errors if sharing $case",
+    async ({ error, messages }) => {
+      // given
+      stubNavigator("share", vi.fn().mockRejectedValue(error));
+      const wrapper = mountDetails(createGarage());
+
+      // when
+      await wrapper
+        .get("[data-test=garage-details-share-btn]")
+        .trigger("click");
+      await flushPromises();
+
+      // then
+      expect(useSnackbarStore().queue.map(({ text }) => text)).toEqual(
+        messages
+      );
+    }
+  );
 });

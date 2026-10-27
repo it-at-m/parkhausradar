@@ -55,7 +55,7 @@ import type { Garage } from "@/types/Garage";
 import type { ComponentPublicInstance } from "vue";
 
 import { mdiFormatListBulleted } from "@mdi/js";
-import { useElementBounding, useElementSize } from "@vueuse/core";
+import { until, useElementBounding, useElementSize } from "@vueuse/core";
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
@@ -70,12 +70,15 @@ import {
 import GarageDetails from "@/components/GarageDetails.vue";
 import GarageList from "@/components/GarageList.vue";
 import TheMap from "@/components/TheMap.vue";
+import { useGarages } from "@/composables/useGarages";
 import { isFocusInClosedDetails } from "@/util/focus";
+import { GARAGE_LINK_QUERY } from "@/util/garageLink";
 
 const { t } = useI18n();
 const { xs, smAndDown } = useDisplay();
 const route = useRoute();
 const router = useRouter();
+const { garages, loaded } = useGarages();
 const selectedGarage = ref<Garage | null>(null);
 const details = useTemplateRef("details");
 const list = useTemplateRef("list");
@@ -138,6 +141,23 @@ function closeList() {
   showMap();
   viewToggleElement.value?.focus();
 }
+
+// Shared links open the details of their garage once it is loaded. The link is removed from the
+// address, so reloading after closing the details does not open them again.
+async function selectLinkedGarage() {
+  const pNumber = route.query[GARAGE_LINK_QUERY];
+  if (typeof pNumber !== "string") {
+    return;
+  }
+  await router.replace({
+    query: { ...route.query, [GARAGE_LINK_QUERY]: undefined },
+  });
+  await until(loaded).toBe(true);
+  selectedGarage.value =
+    garages.value.find((garage) => garage.pNumber === pNumber) ?? null;
+}
+
+selectLinkedGarage();
 
 // The list and the details only fit next to each other on larger screens, otherwise one of them is shown
 watch(listShown, (shown) => {

@@ -6,6 +6,7 @@ import { useSettingsStore } from "../../src/stores/settings";
 
 const THEME_KEY = "parkhausradar.themePreference";
 const LOCALE_KEY = "parkhausradar.localePreference";
+const MAP_APP_KEY = "parkhausradar.mapAppPreference";
 
 function mockDeviceLanguages(languages: string[]) {
   vi.spyOn(navigator, "languages", "get").mockReturnValue(languages);
@@ -228,6 +229,30 @@ describe("settings store theme", () => {
 
       // then
       expect(store.themePreference).toBe("system");
+    }
+  );
+});
+
+describe("settings store map app", () => {
+  test("asks for the map app by default", () => {
+    // when
+    const store = useSettingsStore();
+
+    // then
+    expect(store.mapAppPreference).toBe("ask");
+  });
+
+  test.for([{ stored: "here" }, { stored: "GOOGLE" }, { stored: "" }])(
+    "asks for the map app if '$stored' is persisted",
+    ({ stored }) => {
+      // given
+      localStorage.setItem(MAP_APP_KEY, stored);
+
+      // when
+      const store = useSettingsStore();
+
+      // then
+      expect(store.mapAppPreference).toBe("ask");
     }
   );
 });

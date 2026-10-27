@@ -2,6 +2,7 @@ import type { VueWrapper } from "@vue/test-utils";
 import type { Router } from "vue-router";
 
 import { flushPromises, mount } from "@vue/test-utils";
+import { createPinia } from "pinia";
 import {
   afterEach,
   beforeAll,
@@ -63,7 +64,7 @@ async function mountIndex(path = "/") {
     {
       attachTo: document.body,
       global: {
-        plugins: [i18n, vuetify, router],
+        plugins: [createPinia(), i18n, vuetify, router],
         stubs: { TheMap: TheMapStub },
       },
     }
@@ -261,13 +262,34 @@ describe("index garage selection on small screens", () => {
     await navigation(() => firstListItem().click());
 
     // when
-    await toggle().trigger("click");
-    await flushPromises();
+    await navigation(() => toggle().trigger("click"));
 
     // then
     expect(listShown()).toBe(true);
     expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
     expect(wrapper?.get("[data-test=map]").text()).toBe("");
+  });
+});
+
+describe("index shared links", () => {
+  test("opens the details of the shared garage", async () => {
+    // when
+    await mountIndex("/?garage=P1");
+
+    // then
+    expect(wrapper?.get("[data-test=map]").text()).toBe("Oper");
+    expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
+    // Reloading after closing the details does not open them again
+    expect(router.currentRoute.value.query).toEqual({});
+  });
+
+  test("shows only the map for a garage that does not exist", async () => {
+    // when
+    await mountIndex("/?garage=P99");
+
+    // then
+    expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
+    expect(router.currentRoute.value.query).toEqual({});
   });
 });
 
