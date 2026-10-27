@@ -1,7 +1,9 @@
+import threading
 import unittest
 from datetime import UTC, datetime
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from frost import write_observations
+from frost import FrostClient, write_observations
 from source import Reading
 
 DATASTREAM_IDS = {"P1": {"freeSpaces": 1, "capacity": 2}, "P2": {"freeSpaces": 3, "capacity": 4}}
@@ -43,3 +45,39 @@ class WriteObservationsTest(unittest.TestCase):
 
         with self.assertRaisesRegex(RuntimeError, r"1 of 4 Observations: \['P2 freeSpaces: error Datastream not found'\]"):
             write_observations(frost, DATASTREAM_IDS, [Reading("P1", 10, 100), Reading("P2", 0, 50)], MEASURED_AT)
+
+
+class RecordingHandler(BaseHTTPRequestHandler):
+    authorizations = []
+
+    def do_GET(self):
+        self.authorizations.append(self.headers.get("Authorization"))
+        body = b'{"value": []}'
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *_):
+        pass
+
+
+class FrostClientTest(unittest.TestCase):
+    def setUp(self):
+        RecordingHandler.authorizations = []
+        self.server = HTTPServer(("127.0.0.1", 0), RecordingHandler)
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.addCleanup(self.server.server_close)
+        self.addCleanup(self.server.shutdown)
+        self.base_url = f"http://127.0.0.1:{self.server.server_port}/FROST-Server/v1.1"
+
+    def test_sends_the_credentials_as_basic_auth(self):
+        FrostClient(self.base_url, ("collector", "secret")).get_all("Things", {})
+
+        self.assertEqual(RecordingHandler.authorizations, ["Basic Y29sbGVjdG9yOnNlY3JldA=="])
+
+    def test_sends_no_authorization_without_credentials(self):
+        FrostClient(self.base_url).get_all("Things", {})
+
+        self.assertEqual(RecordingHandler.authorizations, [None])
