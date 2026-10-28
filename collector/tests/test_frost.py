@@ -70,7 +70,7 @@ class RedirectingHandler(QuietHandler):
 
     def do_GET(self):
         self.send_response(302)
-        self.send_header("Location", self.target + self.path)
+        self.send_header("Location", self.target)
         self.send_header("Content-Length", "0")
         self.end_headers()
 
@@ -99,7 +99,7 @@ class FrostClientTest(unittest.TestCase):
         self.assertEqual(RecordingHandler.authorizations, [None])
 
     def test_does_not_forward_the_credentials_to_a_redirect_target(self):
-        RedirectingHandler.target = self.origin
+        RedirectingHandler.target = f"{self.base_url}/Things"
         redirecting_origin = self._serve(RedirectingHandler)
 
         FrostClient(f"{redirecting_origin}/FROST-Server/v1.1", ("collector", "secret")).get_all("Things", {})
