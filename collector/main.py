@@ -32,7 +32,7 @@ def collect(frost: FrostClient, datastream_ids: dict[str, dict[str, int]]) -> tu
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    frost = FrostClient(os.environ["FROST_URL"])
+    frost = frost_from_environment()
     garages = load_garages()
     log.info("Loaded %d garages, writing to %s every %d s", len(garages), frost.base_url, INTERVAL_S)
 
@@ -40,6 +40,13 @@ def main() -> None:
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
     signal.signal(signal.SIGINT, lambda *_: stop.set())
     run(frost, garages, stop)
+
+
+def frost_from_environment() -> FrostClient:
+    username, password = os.environ.get("FROST_USERNAME"), os.environ.get("FROST_PASSWORD")
+    if (username is None) != (password is None):
+        raise ValueError("Set either both FROST_USERNAME and FROST_PASSWORD or neither of them")
+    return FrostClient(os.environ["FROST_URL"], None if username is None else (username, password))
 
 
 def run(frost: FrostClient, garages: list[Garage], stop: threading.Event) -> None:

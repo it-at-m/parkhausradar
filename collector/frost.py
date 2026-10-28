@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import re
@@ -38,8 +39,11 @@ log = logging.getLogger(__name__)
 
 
 class FrostClient:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, credentials: tuple[str, str] | None = None):
         self.base_url = base_url.rstrip("/")
+        self._authorization = (
+            None if credentials is None else "Basic " + base64.b64encode(":".join(credentials).encode("utf-8")).decode("ascii")
+        )
 
     def get_all(self, path: str, query: dict[str, str]) -> list[dict]:
         _, response = self._request("GET", f"{path}?{urlencode(query)}")
@@ -66,6 +70,9 @@ class FrostClient:
     def _request(self, method: str, path: str, body: dict | list | None = None):
         data = None if body is None else json.dumps(body).encode("utf-8")
         request = Request(f"{self.base_url}/{path}", data=data, method=method)
+        if self._authorization is not None:
+            # Unredirected, because urllib copies the other headers to any redirect target, even on another host
+            request.add_unredirected_header("Authorization", self._authorization)
         if data is not None:
             request.add_header("Content-Type", "application/json")
         try:

@@ -1,5 +1,7 @@
 # Local development stack: collector writing to the FROST-Server behind the RefArch gateway, as in production.
 # Credentials in this file are for local development only.
+name: parkhaus-stack
+
 services:
   postgis:
     image: postgis/postgis:18-3.6-alpine@sha256:ffcf0c4b904e41b9779f8098007fb5a9484025319c18c70cf8e1bcebb742b9b7

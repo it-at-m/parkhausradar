@@ -65,7 +65,7 @@ The collector fetches the occupancy from the [data source](#data-sources) every 
 
 ### Deployment
 
-TBD
+The servers run on Kubernetes with the Helm chart [`parkhausradar`](https://github.com/it-at-m/helm-charts/tree/main/charts/parkhausradar) of it@M. It deploys the frontend, the collector and the RefArch gateway with the images from `ghcr.io/it-at-m/parkhausradar`. The FROST-Server runs separately. Its URL and an optional proxy for the collector are set as values, the BasicAuth credentials of the collector in a Secret of the cluster.
 
 ### Data Sources
 
@@ -93,7 +93,7 @@ The garages, keyed by P-Number, live in `collector/garages.json` and are version
 
 `address` and `operatorUrl` may be `null`. A failed run is logged and repeated a minute later, starting again with step 1, so the collector also recovers after FROST was unavailable or reset.
 
-The collector writes directly to FROST, configured by `FROST_URL` (e.g. `http://frost:8080/FROST-Server/v1.1`). Run the tests in `collector/` with `uv run pytest` the linter with `uv run ruff check` and the formatter with `uv run ruff format`. The CI runs all three and builds the image `collector:dev` on `main`, like for the frontend. The image is based on the Python image of Red Hat and contains no uv, so building it downloads nothing besides the base image.
+The collector writes directly to FROST, configured by `FROST_URL` (e.g. `http://frost:8080/FROST-Server/v1.1`). With `FROST_USERNAME` and `FROST_PASSWORD` it authenticates via BasicAuth. `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` are respected. Run the tests in `collector/` with `uv run pytest` the linter with `uv run ruff check` and the formatter with `uv run ruff format`. The CI runs all three and builds the image `collector:dev` on `main`, like for the frontend. The image is based on the Python image of Red Hat and contains no uv, so building it downloads nothing besides the base image.
 
 ### Basemap
 
