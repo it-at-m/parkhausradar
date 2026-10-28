@@ -96,7 +96,7 @@
             :key="link.to"
             :data-test="`settings-legal-${link.to.slice(1)}-link`"
             :to="link.to"
-            :prepend-icon="mdiFileDocumentOutline"
+            :prepend-icon="link.icon"
             :title="link.label"
             rounded="lg"
           />
@@ -134,11 +134,13 @@ import type {
 } from "@/stores/settings";
 
 import {
+  mdiCardAccountDetailsOutline,
   mdiCellphone,
   mdiCog,
-  mdiFileDocumentOutline,
   mdiGithub,
+  mdiHumanHandsup,
   mdiMonitor,
+  mdiShieldLockOutline,
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
 } from "@mdi/js";
@@ -250,11 +252,20 @@ const mapAppOptions = computed<{ value: MapAppPreference; title: string }[]>(
 );
 
 const legalLinks = computed(() => [
-  { to: "/impressum", label: t("components.theSettings.imprint") },
-  { to: "/datenschutz", label: t("components.theSettings.privacy") },
+  {
+    to: "/impressum",
+    label: t("components.theSettings.imprint"),
+    icon: mdiCardAccountDetailsOutline,
+  },
+  {
+    to: "/datenschutz",
+    label: t("components.theSettings.privacy"),
+    icon: mdiShieldLockOutline,
+  },
   {
     to: "/barrierefreiheit",
     label: t("components.theSettings.accessibility"),
+    icon: mdiHumanHandsup,
   },
 ]);
 </script>
