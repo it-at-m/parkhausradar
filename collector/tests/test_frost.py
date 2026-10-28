@@ -47,7 +47,12 @@ class WriteObservationsTest(unittest.TestCase):
             write_observations(frost, DATASTREAM_IDS, [Reading("P1", 10, 100), Reading("P2", 0, 50)], MEASURED_AT)
 
 
-class RecordingHandler(BaseHTTPRequestHandler):
+class QuietHandler(BaseHTTPRequestHandler):
+    def log_message(self, *_):
+        pass
+
+
+class RecordingHandler(QuietHandler):
     authorizations = []
 
     def do_GET(self):
@@ -59,18 +64,29 @@ class RecordingHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def log_message(self, *_):
-        pass
+
+class RedirectingHandler(QuietHandler):
+    target = None
+
+    def do_GET(self):
+        self.send_response(302)
+        self.send_header("Location", self.target + self.path)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
 
 
 class FrostClientTest(unittest.TestCase):
     def setUp(self):
         RecordingHandler.authorizations = []
-        self.server = HTTPServer(("127.0.0.1", 0), RecordingHandler)
-        threading.Thread(target=self.server.serve_forever, daemon=True).start()
-        self.addCleanup(self.server.server_close)
-        self.addCleanup(self.server.shutdown)
-        self.base_url = f"http://127.0.0.1:{self.server.server_port}/FROST-Server/v1.1"
+        self.origin = self._serve(RecordingHandler)
+        self.base_url = f"{self.origin}/FROST-Server/v1.1"
+
+    def _serve(self, handler: type[BaseHTTPRequestHandler]) -> str:
+        server = HTTPServer(("127.0.0.1", 0), handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        return f"http://127.0.0.1:{server.server_port}"
 
     def test_sends_the_credentials_as_basic_auth(self):
         FrostClient(self.base_url, ("collector", "secret")).get_all("Things", {})
@@ -79,5 +95,13 @@ class FrostClientTest(unittest.TestCase):
 
     def test_sends_no_authorization_without_credentials(self):
         FrostClient(self.base_url).get_all("Things", {})
+
+        self.assertEqual(RecordingHandler.authorizations, [None])
+
+    def test_does_not_forward_the_credentials_to_a_redirect_target(self):
+        RedirectingHandler.target = self.origin
+        redirecting_origin = self._serve(RedirectingHandler)
+
+        FrostClient(f"{redirecting_origin}/FROST-Server/v1.1", ("collector", "secret")).get_all("Things", {})
 
         self.assertEqual(RecordingHandler.authorizations, [None])

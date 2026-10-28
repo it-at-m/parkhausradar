@@ -71,7 +71,8 @@ class FrostClient:
         data = None if body is None else json.dumps(body).encode("utf-8")
         request = Request(f"{self.base_url}/{path}", data=data, method=method)
         if self._authorization is not None:
-            request.add_header("Authorization", self._authorization)
+            # Unredirected, because urllib copies the other headers to any redirect target, even on another host
+            request.add_unredirected_header("Authorization", self._authorization)
         if data is not None:
             request.add_header("Content-Type", "application/json")
         try:
