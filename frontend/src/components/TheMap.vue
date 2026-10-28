@@ -178,8 +178,12 @@ onMounted(async () => {
       bounds: INITIAL_BOUNDS,
       maxBounds: [minLon, minLat, maxLon, maxLat],
       maxZoom: 18,
+      dragRotate: false,
+      maxPitch: 0,
       attributionControl: { compact: true },
     });
+    created.touchZoomRotate.disableRotation();
+    created.keyboard.disableRotation();
     created.on("error", ({ error }) => showLoadError(error));
     // Clicks on markers reach the map as well, only clicks next to them deselect
     created.on("click", ({ originalEvent }) => {

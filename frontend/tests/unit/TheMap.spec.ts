@@ -24,6 +24,8 @@ vi.mock("maplibre-gl", () => {
   class Map {
     container: HTMLElement;
     easeTo = vi.fn();
+    touchZoomRotate = { disableRotation: vi.fn() };
+    keyboard = { disableRotation: vi.fn() };
     private clickHandlers: ((event: { originalEvent: Event }) => void)[] = [];
 
     constructor(options: { container: HTMLElement }) {
