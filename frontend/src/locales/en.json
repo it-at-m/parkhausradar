@@ -26,7 +26,8 @@
       "systemLanguage": "Device language ({language})",
       "mapApp": "Route planning",
       "askEveryTime": "Ask every time",
-      "legal": "Legal",
+      "pages": "Information and legal",
+      "about": "About Parkhausradar",
       "imprint": "Imprint",
       "privacy": "Privacy policy",
       "accessibility": "Accessibility statement",
@@ -61,14 +62,25 @@
       "remember": "Remember choice",
       "cancel": "Cancel"
     },
-    "legalPage": {
-      "back": "Back to map",
+    "textPage": {
+      "back": "Back to settings",
       "germanOnly": "This page is only available in German."
     }
   },
   "routes": {
     "index": {
       "showList": "Show list"
+    },
+    "info": {
+      "title": "About Parkhausradar",
+      "intro": "Parkhausradar shows you on a map how many spaces are currently free in the parking garages of Munich's city center.",
+      "coverageTitle": "Why are some parking garages missing?",
+      "coverage": "Parkhausradar is a digital representation of the parking guidance system of the City of Munich. It therefore only shows the parking garages that are connected to the parking guidance system. All of them are located in the city center.",
+      "coverageMissing": "Other parking garages, underground car parks and parking lots in Munich are not included, even if they are nearby.",
+      "originTitle": "Who is behind it?",
+      "origin": "Parkhausradar was created in a cooperation between the IT Department and the Mobility Department of the City of Munich.",
+      "report": "Learn more about the project in the {link}.",
+      "reportLink": "project report (in German)"
     }
   },
   "mapApps": {

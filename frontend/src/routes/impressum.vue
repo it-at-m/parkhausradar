@@ -1,5 +1,8 @@
 <template>
-  <legal-page title="Impressum">
+  <text-page
+    german-only
+    title="Impressum"
+  >
     <h2 class="text-title-large">Landeshauptstadt München</h2>
     <address>
       Postanschrift:<br />
@@ -40,9 +43,9 @@
         >Impressum der Landeshauptstadt München</a
       >
     </p>
-  </legal-page>
+  </text-page>
 </template>
 
 <script setup lang="ts">
-import LegalPage from "@/components/LegalPage.vue";
+import TextPage from "@/components/TextPage.vue";
 </script>

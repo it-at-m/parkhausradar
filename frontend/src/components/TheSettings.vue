@@ -88,15 +88,15 @@
         <v-list
           tag="nav"
           :class="xs ? 'mx-4 mb-4' : 'mx-2'"
-          :aria-label="t('components.theSettings.legal')"
+          :aria-label="t('components.theSettings.pages')"
           rounded="lg"
         >
           <v-list-item
-            v-for="link in legalLinks"
+            v-for="link in pageLinks"
             :key="link.to"
-            :data-test="`settings-legal-${link.to.slice(1)}-link`"
+            :data-test="`settings-page-${link.to.slice(1)}-link`"
             :to="link.to"
-            :prepend-icon="mdiFileDocumentOutline"
+            :prepend-icon="link.icon"
             :title="link.label"
             rounded="lg"
           />
@@ -138,6 +138,7 @@ import {
   mdiCog,
   mdiFileDocumentOutline,
   mdiGithub,
+  mdiInformationOutline,
   mdiMonitor,
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
@@ -249,12 +250,26 @@ const mapAppOptions = computed<{ value: MapAppPreference; title: string }[]>(
   ]
 );
 
-const legalLinks = computed(() => [
-  { to: "/impressum", label: t("components.theSettings.imprint") },
-  { to: "/datenschutz", label: t("components.theSettings.privacy") },
+const pageLinks = computed(() => [
+  {
+    to: "/info",
+    label: t("components.theSettings.about"),
+    icon: mdiInformationOutline,
+  },
+  {
+    to: "/impressum",
+    label: t("components.theSettings.imprint"),
+    icon: mdiFileDocumentOutline,
+  },
+  {
+    to: "/datenschutz",
+    label: t("components.theSettings.privacy"),
+    icon: mdiFileDocumentOutline,
+  },
   {
     to: "/barrierefreiheit",
     label: t("components.theSettings.accessibility"),
+    icon: mdiFileDocumentOutline,
   },
 ]);
 </script>

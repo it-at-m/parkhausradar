@@ -1,5 +1,8 @@
 <template>
-  <legal-page title="Datenschutzerklärung">
+  <text-page
+    german-only
+    title="Datenschutzerklärung"
+  >
     <p>
       Im Folgenden möchten wir Sie aufklären, wie Ihre Daten von uns verarbeitet
       werden.
@@ -61,9 +64,9 @@
         >https://www.bfdi.bund.de/DE/Infothek/Anschriften_Links/anschriften_links-node.html</a
       >.
     </p>
-  </legal-page>
+  </text-page>
 </template>
 
 <script setup lang="ts">
-import LegalPage from "@/components/LegalPage.vue";
+import TextPage from "@/components/TextPage.vue";
 </script>
