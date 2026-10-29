@@ -113,7 +113,8 @@
           </v-list>
         </v-card-text>
 
-        <!-- Leaving the map closes the settings, as they are kept in the address of the map -->
+        <!-- Leaving the map closes the settings, as they are kept in the address of the map.
+             The links are reachable with Tab, Vuetify otherwise only reaches list items with the arrow keys. -->
         <v-list
           tag="nav"
           :class="xs ? 'mx-5 mb-4' : 'mx-2'"
@@ -128,6 +129,7 @@
             :prepend-icon="link.icon"
             :title="link.label"
             rounded="lg"
+            tabindex="0"
           />
         </v-list>
       </div>

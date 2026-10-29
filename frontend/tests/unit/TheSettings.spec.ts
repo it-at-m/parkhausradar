@@ -324,6 +324,23 @@ describe("TheSettings legal pages", () => {
     }
   );
 
+  test("reaches every legal link with the Tab key", async () => {
+    // given
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const links = document.querySelectorAll<HTMLElement>(
+      '[data-test^="settings-legal-"]'
+    );
+    expect(links).toHaveLength(3);
+    for (const link of links) {
+      expect(link.tabIndex).toBeGreaterThanOrEqual(0);
+    }
+  });
+
   test("returns to the map", async () => {
     // given
     const router = await mountApp(["de-DE"]);
