@@ -74,13 +74,10 @@
     "info": {
       "title": "Über das Parkhausradar",
       "intro": "Das Parkhausradar zeigt Ihnen auf einer Karte, wie viele Plätze in den Parkhäusern der Münchner Innenstadt gerade frei sind.",
-      "coverageTitle": "Warum fehlen manche Parkhäuser?",
-      "coverage": "Das Parkhausradar ist eine digitale Abbildung des Parkleitsystems der Landeshauptstadt München. Es zeigt daher nur die Parkhäuser, die an das Parkleitsystem angeschlossen sind. Diese liegen alle in der Innenstadt.",
-      "coverageMissing": "Andere Parkhäuser, Tiefgaragen und Parkplätze in München sind nicht enthalten, auch wenn sie in der Nähe liegen.",
-      "originTitle": "Wer steht dahinter?",
-      "origin": "Das Parkhausradar ist aus einer Kooperation des IT-Referats und des Mobilitätsreferats der Landeshauptstadt München entstanden.",
-      "report": "Mehr über das Projekt erfahren Sie im {link}.",
-      "reportLink": "Projektbericht"
+      "coverage": "Die Daten kommen direkt aus dem Parkleitsystem der Landeshauptstadt München. Deshalb sind nur die angeschlossenen Parkhäuser zu sehen. Andere Parkhäuser, Tiefgaragen und Parkplätze sind nicht dabei.",
+      "reportLink": "Projektbericht",
+      "reportHint": "innolab.muenchen.de",
+      "origin": "Ein Projekt des IT-Referats und des Mobilitätsreferats der Landeshauptstadt München."
     }
   },
   "mapApps": {
