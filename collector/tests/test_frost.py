@@ -3,11 +3,14 @@ import unittest
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from frost import FrostClient, write_observations
+from frost import FrostClient, sync_garages, write_observations
+from garages import Garage
 from source import Reading
 
 DATASTREAM_IDS = {"P1": {"freeSpaces": 1, "capacity": 2}, "P2": {"freeSpaces": 3, "capacity": 4}}
 MEASURED_AT = datetime(2026, 10, 14, 12, 0, tzinfo=UTC)
+GARAGE = Garage("P1", "Altstadt", None, None, (11.57, 48.13), ((11.58, 48.14),))
+PROJECT_LINK = [{"@iot.id": 7}]
 
 
 class FakeFrost:
@@ -45,6 +48,74 @@ class WriteObservationsTest(unittest.TestCase):
 
         with self.assertRaisesRegex(RuntimeError, r"1 of 4 Observations: \['P2 freeSpaces: error Datastream not found'\]"):
             write_observations(frost, DATASTREAM_IDS, [Reading("P1", 10, 100), Reading("P2", 0, 50)], MEASURED_AT)
+
+
+class SyncingFrost:
+    """Stands in for a FROST holding only the given Things and records what sync_garages reads and creates."""
+
+    def __init__(self, project_id: int | None, things: list[dict] | None = None):
+        self.project_id = project_id
+        self.things = things or []
+        self.reads = []
+        self.creates = []
+
+    def get_all(self, path: str, _query: dict[str, str]) -> list[dict]:
+        self.reads.append(path)
+        return self.things if path.endswith("Things") else []
+
+    def create(self, path: str, entity: dict) -> int:
+        self.creates.append((path, entity))
+        return len(self.creates)
+
+    def update(self, _path: str, _entity: dict) -> None:
+        pass
+
+    def delete(self, _path: str) -> None:
+        pass
+
+
+class SyncGaragesTest(unittest.TestCase):
+    def test_reads_and_links_the_entities_of_the_project(self):
+        frost = SyncingFrost(project_id=7)
+
+        sync_garages(frost, [GARAGE])
+
+        self.assertEqual(frost.reads, ["Projects(7)/Sensors", "ObservedProperties", "ObservedProperties", "Projects(7)/Things"])
+        self.assertEqual(
+            [(path, entity.get("Projects")) for path, entity in frost.creates],
+            [
+                ("Sensors", PROJECT_LINK),
+                ("ObservedProperties", None),
+                ("ObservedProperties", None),
+                ("Things", PROJECT_LINK),
+                ("Datastreams", None),
+                ("Datastreams", None),
+            ],
+        )
+        thing = frost.creates[3][1]
+        self.assertEqual([location["Projects"] for location in thing["Locations"]], [PROJECT_LINK, PROJECT_LINK])
+
+    def test_links_replaced_locations_to_the_project(self):
+        thing = {
+            "@iot.id": 5,
+            "name": "P1 Altstadt",
+            "properties": {"pNumber": "P1", "address": None, "operatorUrl": None},
+            "Locations": [{"@iot.id": 9, "name": "P1 Garage", "properties": {"type": "garage"}, "location": {"coordinates": [0, 0]}}],
+            "Datastreams": [{"@iot.id": 1, "properties": {"type": "freeSpaces"}}, {"@iot.id": 2, "properties": {"type": "capacity"}}],
+        }
+        frost = SyncingFrost(project_id=7, things=[thing])
+
+        sync_garages(frost, [GARAGE])
+
+        self.assertEqual([entity["Projects"] for path, entity in frost.creates if path == "Locations"], [PROJECT_LINK, PROJECT_LINK])
+
+    def test_uses_the_whole_server_without_a_project(self):
+        frost = SyncingFrost(project_id=None)
+
+        sync_garages(frost, [GARAGE])
+
+        self.assertEqual(frost.reads, ["Sensors", "ObservedProperties", "ObservedProperties", "Things"])
+        self.assertNotIn("Projects", str(frost.creates))
 
 
 class QuietHandler(BaseHTTPRequestHandler):
