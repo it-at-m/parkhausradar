@@ -26,6 +26,8 @@
       "systemLanguage": "Device language ({language})",
       "mapApp": "Route planning",
       "askEveryTime": "Ask every time",
+      "feedback": "Feedback",
+      "feedbackSurvey": "Take the survey",
       "sourceCode": "Source code on GitHub"
     },
     "garageDetails": {
