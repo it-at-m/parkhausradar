@@ -79,6 +79,35 @@
             aria-labelledby="settings-map-app-label"
           />
         </v-defaults-provider>
+
+        <h3
+          id="settings-feedback-label"
+          class="text-label-large text-medium-emphasis mt-6 mb-2"
+        >
+          {{ t("components.theSettings.feedback") }}
+        </h3>
+        <v-list
+          class="py-0"
+          aria-labelledby="settings-feedback-label"
+          :border="!xs"
+          rounded="lg"
+        >
+          <v-list-item
+            data-test="settings-feedback-link"
+            :href="FEEDBACK_SURVEY_URL"
+            target="_blank"
+            rel="noopener noreferrer"
+            :title="t('components.theSettings.feedbackSurvey')"
+          >
+            <template #append>
+              <v-icon
+                class="text-medium-emphasis"
+                :icon="mdiOpenInNew"
+                size="small"
+              />
+            </template>
+          </v-list-item>
+        </v-list>
       </v-card-text>
 
       <v-divider v-if="!xs" />
@@ -116,6 +145,7 @@ import {
   mdiCog,
   mdiGithub,
   mdiMonitor,
+  mdiOpenInNew,
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
 } from "@mdi/js";
@@ -132,6 +162,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { MAP_APPS } from "@/util/mapApps";
 
 const SOURCE_CODE_URL = "https://github.com/it-at-m/parkhausradar";
+const FEEDBACK_SURVEY_URL = "https://umfrage.muenchen.de/index.php/577876";
 
 const { t } = useI18n();
 const { xs } = useDisplay();
