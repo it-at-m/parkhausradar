@@ -31,6 +31,13 @@
       E-Mail: <a href="mailto:innolab@muenchen.de">innolab@muenchen.de</a>
     </address>
 
+    <h2 class="text-title-large">Hinweis zu den Belegungsdaten</h2>
+    <p>
+      Die Belegungsdaten stammen aus dem Parkleitsystem der Landeshauptstadt
+      München und werden automatisch übernommen. Für ihre Richtigkeit,
+      Vollständigkeit und Aktualität übernehmen wir keine Gewähr.
+    </p>
+
     <p>
       Im Übrigen gilt das
       <a
