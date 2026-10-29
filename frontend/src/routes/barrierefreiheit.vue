@@ -16,14 +16,15 @@
     <p>
       Die folgende Erklärung zur Barrierefreiheit dokumentiert den
       Umsetzungsstand dieses Webauftritts gemäß der gültigen Gesetzgebung. Sie
-      gilt für die Website #TODO
+      gilt für die Webanwendung Parkhausradar der Landeshauptstadt München,
+      unabhängig davon, unter welcher Adresse sie aufgerufen wird.
     </p>
 
     <h2 class="text-title-large">
       Stand der Vereinbarkeit mit den Anforderungen
     </h2>
     <p>
-      Diese Website ist mit der
+      Diese Webanwendung ist mit der
       <a
         href="https://www.gesetze-bayern.de/Content/Document/BayDiV"
         target="_blank"
@@ -38,8 +39,7 @@
     </h2>
     <ul>
       <li>Methodik der Prüfung: Selbstbewertung</li>
-      <li>Erstellungsdatum:</li>
-      <li>Letzte Überprüfung:</li>
+      <li>Erstellungsdatum: 29. Oktober 2026</li>
     </ul>
 
     <h2 class="text-title-large">Hilfe und Kontaktaufnahme bei Problemen</h2>
