@@ -46,7 +46,12 @@ def frost_from_environment() -> FrostClient:
     username, password = os.environ.get("FROST_USERNAME"), os.environ.get("FROST_PASSWORD")
     if (username is None) != (password is None):
         raise ValueError("Set either both FROST_USERNAME and FROST_PASSWORD or neither of them")
-    return FrostClient(os.environ["FROST_URL"], None if username is None else (username, password))
+    project_id = os.environ.get("FROST_PROJECT_ID")
+    return FrostClient(
+        os.environ["FROST_URL"],
+        None if username is None else (username, password),
+        None if project_id is None else int(project_id),
+    )
 
 
 def run(frost: FrostClient, garages: list[Garage], stop: threading.Event) -> None:

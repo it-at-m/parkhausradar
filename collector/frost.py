@@ -39,8 +39,9 @@ log = logging.getLogger(__name__)
 
 
 class FrostClient:
-    def __init__(self, base_url: str, credentials: tuple[str, str] | None = None):
+    def __init__(self, base_url: str, credentials: tuple[str, str] | None = None, project_id: int | None = None):
         self.base_url = base_url.rstrip("/")
+        self.project_id = project_id
         self._authorization = (
             None if credentials is None else "Basic " + base64.b64encode(":".join(credentials).encode("utf-8")).decode("ascii")
         )
@@ -85,15 +86,17 @@ class FrostClient:
 
 def sync_garages(frost: FrostClient, garages: list[Garage]) -> dict[str, dict[str, int]]:
     """Brings Things, Locations and Datastreams in line with garages.json and returns the Datastream ids per P-Number and type."""
-    sensor_id = _ensure_by_name(frost, "Sensors", SENSOR)
+    sensor_id = _ensure_by_name(frost, "Sensors", SENSOR, in_project=True)
+    # ObservedProperties belong to no project, they are shared on the whole server
     observed_property_ids = {
-        datastream_type: _ensure_by_name(frost, "ObservedProperties", entity) for datastream_type, entity in OBSERVED_PROPERTIES.items()
+        datastream_type: _ensure_by_name(frost, "ObservedProperties", entity, in_project=False)
+        for datastream_type, entity in OBSERVED_PROPERTIES.items()
     }
 
     existing = {
         thing["properties"].get("pNumber"): thing
         for thing in frost.get_all(
-            "Things",
+            _in_project(frost, "Things"),
             {
                 "$top": "50",
                 "$select": "id,name,properties",
@@ -106,7 +109,8 @@ def sync_garages(frost: FrostClient, garages: list[Garage]) -> dict[str, dict[st
     for garage in garages:
         thing = existing.get(garage.p_number)
         if thing is None:
-            thing_id = frost.create("Things", {**_thing(garage), "Locations": _locations(garage)})
+            locations = [_linked_to_project(frost, location) for location in _locations(garage)]
+            thing_id = frost.create("Things", _linked_to_project(frost, {**_thing(garage), "Locations": locations}))
             log.info("Created Thing %s for %s", thing_id, garage.p_number)
             thing = {"@iot.id": thing_id, "Datastreams": []}
         else:
@@ -156,14 +160,24 @@ def write_observations(
         raise RuntimeError(f"FROST did not create {len(failed)} of {len(results)} Observations: {failed}")
 
 
-def _ensure_by_name(frost: FrostClient, path: str, entity: dict) -> int:
+def _ensure_by_name(frost: FrostClient, path: str, entity: dict, in_project: bool) -> int:
     name = entity["name"].replace("'", "''")
-    found = frost.get_all(path, {"$filter": f"name eq '{name}'", "$select": "id"})
+    found = frost.get_all(_in_project(frost, path) if in_project else path, {"$filter": f"name eq '{name}'", "$select": "id"})
     if len(found) > 1:
         raise RuntimeError(f"{path}: {len(found)} entities named {entity['name']!r}, expected at most one")
     if found:
         return found[0]["@iot.id"]
-    return frost.create(path, entity)
+    return frost.create(path, _linked_to_project(frost, entity) if in_project else entity)
+
+
+def _in_project(frost: FrostClient, path: str) -> str:
+    """Reads only the project's entities, because FROST also lists the ones of other public projects."""
+    return path if frost.project_id is None else f"Projects({frost.project_id})/{path}"
+
+
+def _linked_to_project(frost: FrostClient, entity: dict) -> dict:
+    """With the Projects plugin of FROST, users may only create Things, Locations and Sensors linked to their project."""
+    return entity if frost.project_id is None else {**entity, "Projects": [{"@iot.id": frost.project_id}]}
 
 
 def _update_thing(frost: FrostClient, garage: Garage, thing: dict) -> None:
@@ -177,7 +191,7 @@ def _update_thing(frost: FrostClient, garage: Garage, thing: dict) -> None:
         for location in thing["Locations"]:
             frost.delete(f"Locations({location['@iot.id']})")
         # Linked in one request, because FROST replaces the previous link when a Location is created for a Thing
-        location_ids = [frost.create("Locations", location) for location in expected_locations]
+        location_ids = [frost.create("Locations", _linked_to_project(frost, location)) for location in expected_locations]
         frost.update(f"Things({thing['@iot.id']})", {"Locations": [{"@iot.id": location_id} for location_id in location_ids]})
         log.info("Replaced Locations of Thing %s for %s", thing["@iot.id"], garage.p_number)
 
