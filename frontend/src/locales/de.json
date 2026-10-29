@@ -28,6 +28,10 @@
       "askEveryTime": "Jedes Mal fragen",
       "feedback": "Feedback",
       "feedbackSurvey": "Umfrage ausfüllen",
+      "legal": "Rechtliches",
+      "imprint": "Impressum",
+      "privacy": "Datenschutzerklärung",
+      "accessibility": "Barrierefreiheitserklärung",
       "sourceCode": "Quellcode auf GitHub"
     },
     "garageDetails": {
@@ -58,6 +62,10 @@
       "toEntrance": "Ziel: Einfahrt des Parkhauses",
       "remember": "Auswahl merken",
       "cancel": "Abbrechen"
+    },
+    "legalPage": {
+      "back": "Zurück zur Karte",
+      "germanOnly": "Diese Seite ist nur auf Deutsch verfügbar."
     }
   },
   "routes": {

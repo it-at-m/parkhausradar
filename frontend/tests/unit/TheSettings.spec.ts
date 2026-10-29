@@ -8,6 +8,9 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import App from "../../src/App.vue";
 import i18n from "../../src/plugins/i18n";
 import vuetify from "../../src/plugins/vuetify";
+import BarrierefreiheitPage from "../../src/routes/barrierefreiheit.vue";
+import DatenschutzPage from "../../src/routes/datenschutz.vue";
+import ImpressumPage from "../../src/routes/impressum.vue";
 
 const LOCALE_KEY = "parkhausradar.localePreference";
 const MAP_APP_KEY = "parkhausradar.mapAppPreference";
@@ -52,7 +55,12 @@ async function mountApp(deviceLanguages: string[]) {
 
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: "/", component: { template: "<div />" } }],
+    routes: [
+      { path: "/", component: { template: "<div />" } },
+      { path: "/impressum", component: ImpressumPage },
+      { path: "/datenschutz", component: DatenschutzPage },
+      { path: "/barrierefreiheit", component: BarrierefreiheitPage },
+    ],
   });
   await router.push("/");
 
@@ -285,4 +293,89 @@ describe("TheSettings feedback", () => {
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toBe("noopener noreferrer");
   });
+});
+
+describe("TheSettings legal pages", () => {
+  test.for([
+    { page: "impressum", title: "Impressum" },
+    { page: "datenschutz", title: "Datenschutzerklärung" },
+    {
+      page: "barrierefreiheit",
+      title: "Erklärung zur Barrierefreiheit nach BayDiV",
+    },
+  ])(
+    "opens the $page page and closes the settings",
+    async ({ page, title }) => {
+      // given
+      const router = await mountApp(["de-DE"]);
+      await openSettings();
+
+      // when
+      await click(findByDataTest(`settings-legal-${page}-link`));
+
+      // then
+      await vi.waitFor(() => {
+        expect(router.currentRoute.value.path).toBe(`/${page}`);
+        expect(
+          document.querySelector("article[lang='de'] h1")?.textContent.trim()
+        ).toBe(title);
+      });
+      expect(document.querySelector(".v-overlay--active")).toBeNull();
+    }
+  );
+
+  test("reaches every legal link with the Tab key", async () => {
+    // given
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const links = document.querySelectorAll<HTMLElement>(
+      '[data-test^="settings-legal-"]'
+    );
+    expect(links).toHaveLength(3);
+    for (const link of links) {
+      expect(link.tabIndex).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  test("returns to the map", async () => {
+    // given
+    const router = await mountApp(["de-DE"]);
+    await router.push("/impressum");
+    await flushPromises();
+
+    // when
+    await click(findByDataTest("legal-page-back-btn"));
+
+    // then
+    await vi.waitFor(() => {
+      expect(router.currentRoute.value.path).toBe("/");
+    });
+  });
+
+  test.for([
+    { deviceLanguages: ["en-US"], shown: true },
+    { deviceLanguages: ["de-DE"], shown: false },
+  ])(
+    "shows the German only notice $shown for device languages $deviceLanguages",
+    async ({ deviceLanguages, shown }) => {
+      // given
+      const router = await mountApp(deviceLanguages);
+
+      // when
+      await router.push("/impressum");
+      await flushPromises();
+
+      // then
+      expect(
+        document.body.textContent.includes(
+          "This page is only available in German."
+        )
+      ).toBe(shown);
+      expect(document.querySelector(".v-alert") !== null).toBe(shown);
+    }
+  );
 });

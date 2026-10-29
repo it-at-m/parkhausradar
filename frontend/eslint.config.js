@@ -65,6 +65,17 @@ export default withVueTs(
       "vue/multi-word-component-names": "off",
     },
   },
+  {
+    // Legal texts are binding in German only and therefore not translated
+    files: [
+      "src/routes/impressum.vue",
+      "src/routes/datenschutz.vue",
+      "src/routes/barrierefreiheit.vue",
+    ],
+    rules: {
+      "@intlify/vue-i18n/no-raw-text": "off",
+    },
+  },
   includeIgnoreFile(prettierIgnorePath, {
     gitignoreResolution: true,
   })

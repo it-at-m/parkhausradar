@@ -28,6 +28,10 @@
       "askEveryTime": "Ask every time",
       "feedback": "Feedback",
       "feedbackSurvey": "Take the survey",
+      "legal": "Legal",
+      "imprint": "Imprint",
+      "privacy": "Privacy policy",
+      "accessibility": "Accessibility statement",
       "sourceCode": "Source code on GitHub"
     },
     "garageDetails": {
@@ -58,6 +62,10 @@
       "toEntrance": "Destination: entrance of the garage",
       "remember": "Remember choice",
       "cancel": "Cancel"
+    },
+    "legalPage": {
+      "back": "Back to map",
+      "germanOnly": "This page is only available in German."
     }
   },
   "routes": {

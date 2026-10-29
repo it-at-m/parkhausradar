@@ -16,99 +16,123 @@
       />
     </template>
 
+    <!-- A menu taller than the space below its button is shifted over the button, so it scrolls instead -->
     <panel-card
+      :max-height="xs ? undefined : MENU_MAX_HEIGHT"
       :title="t('components.theSettings.title')"
       :close-label="t('components.theSettings.close')"
       @close="isOpen = false"
     >
-      <v-card-text class="pt-2">
-        <h3
-          id="settings-appearance-label"
-          class="text-label-large text-medium-emphasis mb-2"
-        >
-          {{ t("components.theSettings.appearance") }}
-        </h3>
-        <v-btn-toggle
-          v-model="settingsStore.themePreference"
-          class="w-100 h-auto pa-1 ga-1"
-          :class="{ 'bg-surface': xs }"
-          aria-labelledby="settings-appearance-label"
-          rounded="lg"
-          :border="!xs"
-          mandatory
-        >
-          <v-btn
-            v-for="option in themeOptions"
-            :key="option.value"
-            :data-test="`settings-theme-${option.value}-btn`"
-            class="flex-1-1-0"
-            :value="option.value"
-            :prepend-icon="option.icon"
-            :text="option.label"
-            variant="text"
-            height="64"
-            rounded="md"
-            stacked
-          />
-        </v-btn-toggle>
-
-        <h3
-          id="settings-language-label"
-          class="text-label-large text-medium-emphasis mt-6 mb-2"
-        >
-          {{ t("components.theSettings.language") }}
-        </h3>
-        <v-defaults-provider :defaults="selectDefaults">
-          <v-select
-            v-model="settingsStore.localePreference"
-            data-test="settings-language-select"
-            :items="localeOptions"
-            aria-labelledby="settings-language-label"
-          />
+      <div class="flex-grow-1 overflow-y-auto">
+        <v-card-text class="pt-2">
+          <h3
+            id="settings-appearance-label"
+            class="text-label-large text-medium-emphasis mb-2"
+          >
+            {{ t("components.theSettings.appearance") }}
+          </h3>
+          <v-btn-toggle
+            v-model="settingsStore.themePreference"
+            class="w-100 h-auto pa-1 ga-1"
+            :class="{ 'bg-surface': xs }"
+            aria-labelledby="settings-appearance-label"
+            rounded="lg"
+            :border="!xs"
+            mandatory
+          >
+            <v-btn
+              v-for="option in themeOptions"
+              :key="option.value"
+              :data-test="`settings-theme-${option.value}-btn`"
+              class="flex-1-1-0"
+              :value="option.value"
+              :prepend-icon="option.icon"
+              :text="option.label"
+              variant="text"
+              height="64"
+              rounded="md"
+              stacked
+            />
+          </v-btn-toggle>
 
           <h3
-            id="settings-map-app-label"
+            id="settings-language-label"
             class="text-label-large text-medium-emphasis mt-6 mb-2"
           >
-            {{ t("components.theSettings.mapApp") }}
+            {{ t("components.theSettings.language") }}
           </h3>
-          <v-select
-            v-model="settingsStore.mapAppPreference"
-            data-test="settings-map-app-select"
-            :items="mapAppOptions"
-            aria-labelledby="settings-map-app-label"
-          />
-        </v-defaults-provider>
+          <v-defaults-provider :defaults="selectDefaults">
+            <v-select
+              v-model="settingsStore.localePreference"
+              data-test="settings-language-select"
+              :items="localeOptions"
+              aria-labelledby="settings-language-label"
+            />
 
-        <h3
-          id="settings-feedback-label"
-          class="text-label-large text-medium-emphasis mt-6 mb-2"
-        >
-          {{ t("components.theSettings.feedback") }}
-        </h3>
+            <h3
+              id="settings-map-app-label"
+              class="text-label-large text-medium-emphasis mt-6 mb-2"
+            >
+              {{ t("components.theSettings.mapApp") }}
+            </h3>
+            <v-select
+              v-model="settingsStore.mapAppPreference"
+              data-test="settings-map-app-select"
+              :items="mapAppOptions"
+              aria-labelledby="settings-map-app-label"
+            />
+          </v-defaults-provider>
+
+          <h3
+            id="settings-feedback-label"
+            class="text-label-large text-medium-emphasis mt-6 mb-2"
+          >
+            {{ t("components.theSettings.feedback") }}
+          </h3>
+          <v-list
+            class="py-0"
+            aria-labelledby="settings-feedback-label"
+            :border="!xs"
+            rounded="lg"
+          >
+            <v-list-item
+              data-test="settings-feedback-link"
+              :href="FEEDBACK_SURVEY_URL"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="t('components.theSettings.feedbackSurvey')"
+            >
+              <template #append>
+                <v-icon
+                  class="text-medium-emphasis"
+                  :icon="mdiOpenInNew"
+                  size="small"
+                />
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+
+        <!-- Leaving the map closes the settings, as they are kept in the address of the map.
+             The links are reachable with Tab, Vuetify otherwise only reaches list items with the arrow keys. -->
         <v-list
-          class="py-0"
-          aria-labelledby="settings-feedback-label"
-          :border="!xs"
+          tag="nav"
+          :class="xs ? 'mx-5 mb-4' : 'mx-2'"
+          :aria-label="t('components.theSettings.legal')"
           rounded="lg"
         >
           <v-list-item
-            data-test="settings-feedback-link"
-            :href="FEEDBACK_SURVEY_URL"
-            target="_blank"
-            rel="noopener noreferrer"
-            :title="t('components.theSettings.feedbackSurvey')"
-          >
-            <template #append>
-              <v-icon
-                class="text-medium-emphasis"
-                :icon="mdiOpenInNew"
-                size="small"
-              />
-            </template>
-          </v-list-item>
+            v-for="link in legalLinks"
+            :key="link.to"
+            :data-test="`settings-legal-${link.to.slice(1)}-link`"
+            :to="link.to"
+            :prepend-icon="link.icon"
+            :title="link.label"
+            rounded="lg"
+            tabindex="0"
+          />
         </v-list>
-      </v-card-text>
+      </div>
 
       <v-divider v-if="!xs" />
 
@@ -141,11 +165,14 @@ import type {
 } from "@/stores/settings";
 
 import {
+  mdiCardAccountDetailsOutline,
   mdiCellphone,
   mdiCog,
   mdiGithub,
+  mdiHumanHandsup,
   mdiMonitor,
   mdiOpenInNew,
+  mdiShieldLockOutline,
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
 } from "@mdi/js";
@@ -163,6 +190,8 @@ import { MAP_APPS } from "@/util/mapApps";
 
 const SOURCE_CODE_URL = "https://github.com/it-at-m/parkhausradar";
 const FEEDBACK_SURVEY_URL = "https://umfrage.muenchen.de/index.php/577876";
+// Space below the button (16px margin, 48px button, 8px offset) and a 16px gap to the bottom of the screen
+const MENU_MAX_HEIGHT = "calc(100dvh - 88px)";
 
 const { t } = useI18n();
 const { xs } = useDisplay();
@@ -254,4 +283,22 @@ const mapAppOptions = computed<{ value: MapAppPreference; title: string }[]>(
     ...MAP_APPS.map((app) => ({ value: app, title: mapAppNames.value[app] })),
   ]
 );
+
+const legalLinks = computed(() => [
+  {
+    to: "/impressum",
+    label: t("components.theSettings.imprint"),
+    icon: mdiCardAccountDetailsOutline,
+  },
+  {
+    to: "/datenschutz",
+    label: t("components.theSettings.privacy"),
+    icon: mdiShieldLockOutline,
+  },
+  {
+    to: "/barrierefreiheit",
+    label: t("components.theSettings.accessibility"),
+    icon: mdiHumanHandsup,
+  },
+]);
 </script>
