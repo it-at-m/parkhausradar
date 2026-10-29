@@ -276,6 +276,25 @@ describe("TheSettings route planning", () => {
   });
 });
 
+describe("TheSettings feedback", () => {
+  test("links to the feedback survey in a new tab", async () => {
+    // given
+    await mountApp(["en-US"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const link = findByDataTest("settings-feedback-link");
+    expect(link.textContent.trim()).toBe("Take the survey");
+    expect(link.getAttribute("href")).toBe(
+      "https://umfrage.muenchen.de/index.php/577876"
+    );
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+});
+
 describe("TheSettings legal pages", () => {
   test.for([
     { page: "impressum", title: "Impressum" },

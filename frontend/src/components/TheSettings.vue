@@ -82,6 +82,35 @@
               aria-labelledby="settings-map-app-label"
             />
           </v-defaults-provider>
+
+          <h3
+            id="settings-feedback-label"
+            class="text-label-large text-medium-emphasis mt-6 mb-2"
+          >
+            {{ t("components.theSettings.feedback") }}
+          </h3>
+          <v-list
+            class="py-0"
+            aria-labelledby="settings-feedback-label"
+            :border="!xs"
+            rounded="lg"
+          >
+            <v-list-item
+              data-test="settings-feedback-link"
+              :href="FEEDBACK_SURVEY_URL"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="t('components.theSettings.feedbackSurvey')"
+            >
+              <template #append>
+                <v-icon
+                  class="text-medium-emphasis"
+                  :icon="mdiOpenInNew"
+                  size="small"
+                />
+              </template>
+            </v-list-item>
+          </v-list>
         </v-card-text>
 
         <!-- Leaving the map closes the settings, as they are kept in the address of the map -->
@@ -140,6 +169,7 @@ import {
   mdiGithub,
   mdiHumanHandsup,
   mdiMonitor,
+  mdiOpenInNew,
   mdiShieldLockOutline,
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
@@ -157,6 +187,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { MAP_APPS } from "@/util/mapApps";
 
 const SOURCE_CODE_URL = "https://github.com/it-at-m/parkhausradar";
+const FEEDBACK_SURVEY_URL = "https://umfrage.muenchen.de/index.php/577876";
 // Space below the button (16px margin, 48px button, 8px offset) and a 16px gap to the bottom of the screen
 const MENU_MAX_HEIGHT = "calc(100dvh - 88px)";
 
