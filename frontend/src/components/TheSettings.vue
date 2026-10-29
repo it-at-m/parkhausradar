@@ -116,7 +116,7 @@
         <!-- Leaving the map closes the settings, as they are kept in the address of the map -->
         <v-list
           tag="nav"
-          :class="xs ? 'mx-4 mb-4' : 'mx-2'"
+          :class="xs ? 'mx-5 mb-4' : 'mx-2'"
           :aria-label="t('components.theSettings.legal')"
           rounded="lg"
         >
