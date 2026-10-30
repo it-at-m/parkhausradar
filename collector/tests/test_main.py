@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import patch
 
@@ -15,6 +16,16 @@ class StopAfter:
 
     def wait(self, _timeout: float) -> None:
         self.remaining -= 1
+
+
+class FrostFromEnvironmentTest(unittest.TestCase):
+    @patch.dict(os.environ, {"FROST_URL": "http://frost/v1.1", "FROST_PROJECT_ID": "7"}, clear=True)
+    def test_reads_the_project(self):
+        self.assertEqual(main.frost_from_environment().project_id, 7)
+
+    @patch.dict(os.environ, {"FROST_URL": "http://frost/v1.1"}, clear=True)
+    def test_uses_no_project_by_default(self):
+        self.assertIsNone(main.frost_from_environment().project_id)
 
 
 class RunTest(unittest.TestCase):

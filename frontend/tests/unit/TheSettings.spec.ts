@@ -280,6 +280,25 @@ describe("TheSettings route planning", () => {
   });
 });
 
+describe("TheSettings feedback", () => {
+  test("links to the feedback survey in a new tab", async () => {
+    // given
+    await mountApp(["en-US"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const link = findByDataTest("settings-feedback-link");
+    expect(link.textContent.trim()).toBe("Take the survey");
+    expect(link.getAttribute("href")).toBe(
+      "https://umfrage.muenchen.de/index.php/577876"
+    );
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+});
+
 describe("TheSettings legal pages", () => {
   test.for([
     { page: "impressum", title: "Impressum" },
@@ -311,6 +330,23 @@ describe("TheSettings legal pages", () => {
       ).toBeNull();
     }
   );
+
+  test("reaches every page link with the Tab key", async () => {
+    // given
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const links = document.querySelectorAll<HTMLElement>(
+      '[data-test^="settings-page-"]'
+    );
+    expect(links).toHaveLength(4);
+    for (const link of links) {
+      expect(link.tabIndex).toBeGreaterThanOrEqual(0);
+    }
+  });
 
   test("returns to the settings it was opened from", async () => {
     // given
@@ -345,6 +381,23 @@ describe("TheSettings legal pages", () => {
     await vi.waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe("/?dialog=settings");
       expect(getSettingsTitle()).toBe("Einstellungen");
+    });
+  });
+
+  test("closes the settings on going back after the page was opened directly", async () => {
+    // given
+    const router = await mountApp(["de-DE"]);
+    await router.replace("/impressum");
+    await flushPromises();
+    await click(findByDataTest("text-page-back-btn"));
+    await vi.waitFor(() => expect(getSettingsTitle()).toBe("Einstellungen"));
+
+    // when
+    router.back();
+
+    // then
+    await vi.waitFor(() => {
+      expect(router.currentRoute.value.fullPath).toBe("/");
     });
   });
 

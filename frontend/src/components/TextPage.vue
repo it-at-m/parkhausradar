@@ -45,7 +45,7 @@ const { t, locale } = useI18n();
 const router = useRouter();
 
 // Going back restores the map as it was when the page was opened from the settings
-function backToSettings() {
+async function backToSettings() {
   const previous = router.options.history.state.back;
   if (
     typeof previous === "string" &&
@@ -53,7 +53,9 @@ function backToSettings() {
   ) {
     router.back();
   } else {
-    router.push({ path: "/", query: { dialog: "settings" } });
+    // Replaces the page, so the back button closes the settings instead of reopening it
+    await router.replace("/");
+    await router.push({ path: "/", query: { dialog: "settings" } });
   }
 }
 </script>
