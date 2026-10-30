@@ -28,7 +28,8 @@
       "askEveryTime": "Jedes Mal fragen",
       "feedback": "Feedback",
       "feedbackSurvey": "Umfrage ausfüllen",
-      "legal": "Rechtliches",
+      "pages": "Informationen und Rechtliches",
+      "about": "Über das Parkhausradar",
       "imprint": "Impressum",
       "privacy": "Datenschutzerklärung",
       "accessibility": "Barrierefreiheitserklärung",
@@ -63,14 +64,22 @@
       "remember": "Auswahl merken",
       "cancel": "Abbrechen"
     },
-    "legalPage": {
-      "back": "Zurück zur Karte",
+    "textPage": {
+      "back": "Zurück zu den Einstellungen",
       "germanOnly": "Diese Seite ist nur auf Deutsch verfügbar."
     }
   },
   "routes": {
     "index": {
       "showList": "Liste anzeigen"
+    },
+    "info": {
+      "title": "Über das Parkhausradar",
+      "intro": "Das Parkhausradar zeigt Ihnen auf einer Karte, wie viele Plätze in den Parkhäusern der Münchner Innenstadt gerade frei sind.",
+      "coverage": "Die Daten kommen direkt aus dem Parkleitsystem der Landeshauptstadt München. Deshalb sind nur die angeschlossenen Parkhäuser zu sehen. Andere Parkhäuser, Tiefgaragen und Parkplätze sind nicht dabei.",
+      "reportLink": "Projektbericht",
+      "reportHint": "innolab.muenchen.de",
+      "origin": "Ein Projekt des IT-Referats und des Mobilitätsreferats der Landeshauptstadt München."
     }
   },
   "mapApps": {

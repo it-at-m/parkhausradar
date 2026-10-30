@@ -8,19 +8,21 @@
         </v-fade-transition>
       </router-view>
     </v-main>
-    <the-settings />
+    <the-settings v-if="route.path === '/'" />
   </v-app>
 </template>
 
 <script setup lang="ts">
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import { useTheme } from "vuetify";
 
 import TheSettings from "@/components/TheSettings.vue";
 import TheSnackbarQueue from "@/components/TheSnackbarQueue.vue";
 import { useSettingsStore } from "@/stores/settings";
 
+const route = useRoute();
 const theme = useTheme();
 const { locale: i18nLocale } = useI18n();
 const settingsStore = useSettingsStore();

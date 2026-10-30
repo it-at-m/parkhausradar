@@ -28,7 +28,8 @@
       "askEveryTime": "Ask every time",
       "feedback": "Feedback",
       "feedbackSurvey": "Take the survey",
-      "legal": "Legal",
+      "pages": "Information and legal",
+      "about": "About Parkhausradar",
       "imprint": "Imprint",
       "privacy": "Privacy policy",
       "accessibility": "Accessibility statement",
@@ -63,14 +64,22 @@
       "remember": "Remember choice",
       "cancel": "Cancel"
     },
-    "legalPage": {
-      "back": "Back to map",
+    "textPage": {
+      "back": "Back to settings",
       "germanOnly": "This page is only available in German."
     }
   },
   "routes": {
     "index": {
       "showList": "Show list"
+    },
+    "info": {
+      "title": "About Parkhausradar",
+      "intro": "Parkhausradar shows you on a map how many spaces are currently free in the parking garages of Munich's city center.",
+      "coverage": "The data comes straight from the parking guidance system of the City of Munich. That is why only the connected parking garages are shown. Other parking garages, underground car parks and parking lots are not included.",
+      "reportLink": "Project report",
+      "reportHint": "innolab.muenchen.de",
+      "origin": "A project by the IT Department and the Mobility Department of the City of Munich."
     }
   },
   "mapApps": {

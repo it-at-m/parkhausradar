@@ -1,5 +1,8 @@
 <template>
-  <legal-page title="Erklärung zur Barrierefreiheit nach BayDiV">
+  <text-page
+    german-only
+    title="Erklärung zur Barrierefreiheit nach BayDiV"
+  >
     <p>
       Öffentliche Stellen sind gemäß der
       <a
@@ -76,9 +79,9 @@
       81541 München<br />
       E-Mail: <a href="mailto:bitv@ldbv.bayern.de">bitv@ldbv.bayern.de</a>
     </address>
-  </legal-page>
+  </text-page>
 </template>
 
 <script setup lang="ts">
-import LegalPage from "@/components/LegalPage.vue";
+import TextPage from "@/components/TextPage.vue";
 </script>

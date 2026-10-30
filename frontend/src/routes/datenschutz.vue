@@ -1,5 +1,8 @@
 <template>
-  <legal-page title="Datenschutzerklärung">
+  <text-page
+    german-only
+    title="Datenschutzerklärung"
+  >
     <h2 class="text-title-large">Verantwortlicher</h2>
     <address>
       Landeshauptstadt München<br />
@@ -68,9 +71,9 @@
       >
       über die Verarbeitung zu beschweren.
     </p>
-  </legal-page>
+  </text-page>
 </template>
 
 <script setup lang="ts">
-import LegalPage from "@/components/LegalPage.vue";
+import TextPage from "@/components/TextPage.vue";
 </script>

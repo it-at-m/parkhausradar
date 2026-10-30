@@ -3,7 +3,7 @@ import type { VueWrapper } from "@vue/test-utils";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 
 import App from "../../src/App.vue";
 import i18n from "../../src/plugins/i18n";
@@ -11,6 +11,7 @@ import vuetify from "../../src/plugins/vuetify";
 import BarrierefreiheitPage from "../../src/routes/barrierefreiheit.vue";
 import DatenschutzPage from "../../src/routes/datenschutz.vue";
 import ImpressumPage from "../../src/routes/impressum.vue";
+import InfoPage from "../../src/routes/info.vue";
 
 const LOCALE_KEY = "parkhausradar.localePreference";
 const MAP_APP_KEY = "parkhausradar.mapAppPreference";
@@ -53,16 +54,19 @@ afterEach(() => {
 async function mountApp(deviceLanguages: string[]) {
   vi.spyOn(navigator, "languages", "get").mockReturnValue(deviceLanguages);
 
+  // jsdom keeps the history between tests, each test starts without a previous entry of the app
+  window.history.replaceState(null, "");
   const router = createRouter({
-    history: createMemoryHistory(),
+    history: createWebHistory(),
     routes: [
       { path: "/", component: { template: "<div />" } },
+      { path: "/info", component: InfoPage },
       { path: "/impressum", component: ImpressumPage },
       { path: "/datenschutz", component: DatenschutzPage },
       { path: "/barrierefreiheit", component: BarrierefreiheitPage },
     ],
   });
-  await router.push("/");
+  await router.replace("/");
 
   wrapper = mount(App, {
     attachTo: document.body,
@@ -311,7 +315,7 @@ describe("TheSettings legal pages", () => {
       await openSettings();
 
       // when
-      await click(findByDataTest(`settings-legal-${page}-link`));
+      await click(findByDataTest(`settings-page-${page}-link`));
 
       // then
       await vi.waitFor(() => {
@@ -321,10 +325,13 @@ describe("TheSettings legal pages", () => {
         ).toBe(title);
       });
       expect(document.querySelector(".v-overlay--active")).toBeNull();
+      expect(
+        document.querySelector('[data-test="settings-open-btn"]')
+      ).toBeNull();
     }
   );
 
-  test("reaches every legal link with the Tab key", async () => {
+  test("reaches every page link with the Tab key", async () => {
     // given
     await mountApp(["de-DE"]);
 
@@ -333,26 +340,64 @@ describe("TheSettings legal pages", () => {
 
     // then
     const links = document.querySelectorAll<HTMLElement>(
-      '[data-test^="settings-legal-"]'
+      '[data-test^="settings-page-"]'
     );
-    expect(links).toHaveLength(3);
+    expect(links).toHaveLength(4);
     for (const link of links) {
       expect(link.tabIndex).toBeGreaterThanOrEqual(0);
     }
   });
 
-  test("returns to the map", async () => {
+  test("returns to the settings it was opened from", async () => {
     // given
     const router = await mountApp(["de-DE"]);
-    await router.push("/impressum");
-    await flushPromises();
+    await router.push("/?garage=P8");
+    await openSettings();
+    await click(findByDataTest("settings-page-impressum-link"));
+    await vi.waitFor(() => findByDataTest("text-page-back-btn"));
 
     // when
-    await click(findByDataTest("legal-page-back-btn"));
+    await click(findByDataTest("text-page-back-btn"));
 
     // then
     await vi.waitFor(() => {
-      expect(router.currentRoute.value.path).toBe("/");
+      expect(router.currentRoute.value.fullPath).toBe(
+        "/?garage=P8&dialog=settings"
+      );
+      expect(getSettingsTitle()).toBe("Einstellungen");
+    });
+  });
+
+  test("opens the settings on the map when the page was opened directly", async () => {
+    // given
+    const router = await mountApp(["de-DE"]);
+    await router.replace("/impressum");
+    await flushPromises();
+
+    // when
+    await click(findByDataTest("text-page-back-btn"));
+
+    // then
+    await vi.waitFor(() => {
+      expect(router.currentRoute.value.fullPath).toBe("/?dialog=settings");
+      expect(getSettingsTitle()).toBe("Einstellungen");
+    });
+  });
+
+  test("closes the settings on going back after the page was opened directly", async () => {
+    // given
+    const router = await mountApp(["de-DE"]);
+    await router.replace("/impressum");
+    await flushPromises();
+    await click(findByDataTest("text-page-back-btn"));
+    await vi.waitFor(() => expect(getSettingsTitle()).toBe("Einstellungen"));
+
+    // when
+    router.back();
+
+    // then
+    await vi.waitFor(() => {
+      expect(router.currentRoute.value.fullPath).toBe("/");
     });
   });
 

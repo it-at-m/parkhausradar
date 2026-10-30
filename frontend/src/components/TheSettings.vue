@@ -118,13 +118,13 @@
         <v-list
           tag="nav"
           :class="xs ? 'mx-5 mb-4' : 'mx-2'"
-          :aria-label="t('components.theSettings.legal')"
+          :aria-label="t('components.theSettings.pages')"
           rounded="lg"
         >
           <v-list-item
-            v-for="link in legalLinks"
+            v-for="link in pageLinks"
             :key="link.to"
-            :data-test="`settings-legal-${link.to.slice(1)}-link`"
+            :data-test="`settings-page-${link.to.slice(1)}-link`"
             :to="link.to"
             :prepend-icon="link.icon"
             :title="link.label"
@@ -170,6 +170,7 @@ import {
   mdiCog,
   mdiGithub,
   mdiHumanHandsup,
+  mdiInformationOutline,
   mdiMonitor,
   mdiOpenInNew,
   mdiShieldLockOutline,
@@ -284,7 +285,12 @@ const mapAppOptions = computed<{ value: MapAppPreference; title: string }[]>(
   ]
 );
 
-const legalLinks = computed(() => [
+const pageLinks = computed(() => [
+  {
+    to: "/info",
+    label: t("components.theSettings.about"),
+    icon: mdiInformationOutline,
+  },
   {
     to: "/impressum",
     label: t("components.theSettings.imprint"),
