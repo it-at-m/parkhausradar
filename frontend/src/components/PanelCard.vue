@@ -20,8 +20,7 @@
         />
       </template>
       <v-card-title
-        :id="titleId"
-        class="ma-0"
+        class="ma-0 text-title-medium font-weight-medium"
         tag="h2"
       >
         {{ title }}
@@ -38,7 +37,6 @@ import { useDisplay } from "vuetify";
 // Floating next to the map on larger screens, a full screen page with a back button on small screens
 defineProps<{
   title: string;
-  titleId?: string;
   closeLabel: string;
 }>();
 

@@ -261,7 +261,7 @@ onUnmounted(() => {
 /* The attribution has to stay visible above content covering the bottom of the map */
 .the-map :deep(.maplibregl-ctrl-bottom-right) {
   bottom: var(--map-bottom-inset);
-  transition: bottom 150ms ease;
+  transition: bottom 150ms var(--standard-easing);
 }
 
 @media (prefers-reduced-motion: reduce) {

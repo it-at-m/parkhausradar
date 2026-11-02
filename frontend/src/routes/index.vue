@@ -11,36 +11,50 @@
       />
     </div>
     <div class="panels d-flex flex-column ga-2 pa-4">
-      <v-btn
+      <app-name-button
         ref="viewToggle"
         data-test="view-toggle-btn"
         class="view-toggle align-self-start"
-        :icon="mdiFormatListBulleted"
-        :aria-label="t('routes.index.showList')"
-        :aria-expanded="listShown"
-        @click="listShown ? closeList() : showList()"
+        :class="{ 'panel-header': panelShown }"
+        :icon="detailsInPanel ? mdiArrowLeft : mdiFormatListBulleted"
+        :variant="panelShown ? 'text' : 'elevated'"
+        :aria-label="
+          detailsInPanel
+            ? t('components.garageDetails.close')
+            : t('routes.index.showList')
+        "
+        :aria-expanded="detailsInPanel ? undefined : listVisible"
+        @click="toggleView"
       />
       <div
         ref="panelRow"
         class="panel-row d-flex align-start align-self-start ga-4"
       >
         <component
-          :is="xs ? VDialog : VDialogTransition"
+          :is="xs ? VDialog : RevealTransition"
           v-bind="listOverlayProps"
         >
-          <!-- The dialog mounts its content only while it is open -->
+          <!-- Stays mounted behind the details, so returning to it keeps its focus target -->
           <garage-list
             v-if="xs || listShown"
             ref="list"
+            :class="{
+              'below-toggle': !xs,
+              'behind-details': !listVisible && !xs,
+            }"
             :selected-garage="selectedGarage"
             @select="selectedGarage = $event"
             @close="closeList"
           />
         </component>
-        <component :is="xs ? VSlideYReverseTransition : VSlideXTransition">
+        <component
+          :is="xs ? VSlideYReverseTransition : RevealTransition"
+          v-bind="detailsTransitionProps"
+        >
           <garage-details
             v-if="selectedGarage"
             ref="details"
+            :class="{ 'below-toggle': !xs }"
             :garage="selectedGarage"
             @close="selectedGarage = null"
           />
@@ -54,20 +68,17 @@
 import type { Garage } from "@/types/Garage";
 import type { ComponentPublicInstance } from "vue";
 
-import { mdiFormatListBulleted } from "@mdi/js";
+import { mdiArrowLeft, mdiFormatListBulleted } from "@mdi/js";
 import { useElementBounding, useElementSize } from "@vueuse/core";
 import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
-import {
-  VDialog,
-  VDialogTransition,
-  VSlideXTransition,
-  VSlideYReverseTransition,
-} from "vuetify/components";
+import { VDialog, VSlideYReverseTransition } from "vuetify/components";
 
+import AppNameButton from "@/components/AppNameButton.vue";
 import GarageDetails from "@/components/GarageDetails.vue";
 import GarageList from "@/components/GarageList.vue";
+import RevealTransition from "@/components/RevealTransition.vue";
 import TheMap from "@/components/TheMap.vue";
 import { useGarages } from "@/composables/useGarages";
 import { useQueryState } from "@/composables/useQueryState";
@@ -75,7 +86,7 @@ import { isFocusInClosedDetails } from "@/util/focus";
 import { GARAGE_LINK_QUERY } from "@/util/garageLink";
 
 const { t } = useI18n();
-const { xs, smAndDown } = useDisplay();
+const { xs } = useDisplay();
 const query = useQueryState();
 const { garages, loaded } = useGarages();
 const details = useTemplateRef("details");
@@ -96,7 +107,7 @@ const { right: panelRowRight } = useElementBounding(useTemplateRef("panelRow"));
 const listShown = computed(() => query.get("view") === "list");
 const selectedPNumber = computed(() => query.get(GARAGE_LINK_QUERY));
 
-// The list and the details only fit next to each other on larger screens, otherwise one of them is shown
+// On larger screens the address keeps the list to return to from the details
 const selectedGarage = computed<Garage | null>({
   get: () =>
     garages.value.find((garage) => garage.pNumber === selectedPNumber.value) ??
@@ -107,25 +118,39 @@ const selectedGarage = computed<Garage | null>({
     }
     query.change({
       [GARAGE_LINK_QUERY]: garage?.pNumber,
-      ...(garage && smAndDown.value && { view: undefined }),
+      ...(garage && xs.value && { view: undefined }),
     });
   },
 });
 
-const listOverlayProps = computed(() =>
-  xs.value
-    ? {
-        modelValue: listShown.value,
-        fullscreen: true,
-        transition: "fade-transition",
-        // The back button already closes it through the address
-        closeOnBack: false,
-        "onUpdate:modelValue": closeList,
-      }
-    : { target: viewToggleElement.value }
+const listVisible = computed(
+  () => listShown.value && (xs.value || !selectedGarage.value)
+);
+const detailsInPanel = computed(
+  () => !xs.value && selectedGarage.value !== null
+);
+const panelShown = computed(
+  () => !xs.value && (listShown.value || detailsInPanel.value)
 );
 
-// On small screens the details cover the bottom of the map, otherwise its left side next to the list
+const listOverlayProps = computed(() => ({
+  target: viewToggleElement.value,
+  ...(xs.value && {
+    modelValue: listShown.value,
+    fullscreen: true,
+    transition: { component: RevealTransition },
+    scrim: false,
+    // The back button already closes it through the address
+    closeOnBack: false,
+    "onUpdate:modelValue": closeList,
+  }),
+}));
+
+// In the open list panel the details replace the list instead of growing out of the button
+const detailsTransitionProps = computed(() =>
+  xs.value || listShown.value ? {} : { target: viewToggleElement.value }
+);
+
 const mapInset = computed(() => {
   if (!selectedGarage.value || !detailsWidth.value) {
     return { left: 0, bottom: 0 };
@@ -135,10 +160,20 @@ const mapInset = computed(() => {
     : { left: panelRowRight.value, bottom: 0 };
 });
 
+function toggleView() {
+  if (detailsInPanel.value) {
+    selectedGarage.value = null;
+  } else if (listVisible.value) {
+    closeList();
+  } else {
+    showList();
+  }
+}
+
 function showList() {
   query.change({
     view: "list",
-    ...(smAndDown.value && { [GARAGE_LINK_QUERY]: undefined }),
+    [GARAGE_LINK_QUERY]: undefined,
   });
 }
 
@@ -148,21 +183,20 @@ function closeList() {
   viewToggleElement.value?.focus();
 }
 
-// Links to garages that do not exist, or no longer do, only show the map
 watch([loaded, selectedPNumber], () => {
   if (loaded.value && selectedPNumber.value && !selectedGarage.value) {
     query.change({ [GARAGE_LINK_QUERY]: undefined });
   }
 });
 
-// Screens that shrink below the size for both keep the details, which are more specific than the list
-watch(smAndDown, (small) => {
+// Screens that shrink to a full screen list keep the details, which are more specific than the list
+watch(xs, (small) => {
   if (small && listShown.value && selectedPNumber.value) {
     query.change({ view: undefined });
   }
 });
 
-// Keyboard users closing the details continue at the garage they came from, in the list if it is shown and otherwise on the map
+// Keyboard users closing the details continue at the garage they came from
 watch(
   () => selectedGarage.value?.pNumber,
   (selected, wasSelected) => {
@@ -195,6 +229,32 @@ watch(
 .view-toggle,
 .panel-row > * {
   pointer-events: auto;
+}
+
+.view-toggle {
+  z-index: 1;
+}
+
+/* Concentric with the card around it */
+.view-toggle.panel-header {
+  border-radius: 12px;
+}
+
+/* Pulls the panel behind the button: 48px button, 8px gap and 8px inset */
+.panel-row > .below-toggle {
+  width: 380px;
+  margin-top: -64px;
+  margin-left: -8px;
+  max-height: calc(100% + 64px);
+}
+
+/* Room for the button with its 8px inset above the content */
+.panel-row > .below-toggle > :deep(.v-card) {
+  padding-top: 56px;
+}
+
+.panel-row > .behind-details {
+  display: none;
 }
 
 .panel-row {

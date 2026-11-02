@@ -16,13 +16,24 @@
       />
     </template>
 
-    <!-- A menu taller than the space below its button is shifted over the button, so it scrolls instead -->
     <panel-card
       :max-height="xs ? undefined : MENU_MAX_HEIGHT"
       :title="t('components.theSettings.title')"
       :close-label="t('components.theSettings.close')"
       @close="isOpen = false"
     >
+      <!-- Takes the place of the button that opened the menu -->
+      <v-btn
+        v-if="!xs"
+        data-test="settings-close-btn"
+        class="ma-2"
+        :icon="mdiCog"
+        :aria-label="t('components.theSettings.close')"
+        variant="text"
+        position="absolute"
+        location="top end"
+        @click="isOpen = false"
+      />
       <div class="flex-grow-1 overflow-y-auto">
         <v-card-text class="pt-2">
           <h3
@@ -133,25 +144,6 @@
           />
         </v-list>
       </div>
-
-      <v-divider v-if="!xs" />
-
-      <v-card-text
-        class="flex-grow-0 py-4 text-body-small text-medium-emphasis"
-      >
-        <a
-          class="d-inline-flex align-center ga-1 text-medium-emphasis"
-          :href="SOURCE_CODE_URL"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <v-icon
-            :icon="mdiGithub"
-            size="small"
-          />
-          {{ t("components.theSettings.sourceCode") }}
-        </a>
-      </v-card-text>
     </panel-card>
   </component>
 </template>
@@ -168,7 +160,6 @@ import {
   mdiCardAccountDetailsOutline,
   mdiCellphone,
   mdiCog,
-  mdiGithub,
   mdiHumanHandsup,
   mdiInformationOutline,
   mdiMonitor,
@@ -183,16 +174,17 @@ import { useDisplay } from "vuetify";
 import { VDialog, VMenu } from "vuetify/components";
 
 import PanelCard from "@/components/PanelCard.vue";
+import RevealTransition from "@/components/RevealTransition.vue";
 import { useMapAppNames } from "@/composables/useMapAppNames";
 import { useQueryState } from "@/composables/useQueryState";
 import { SUPPORTED_LOCALES } from "@/plugins/i18n";
 import { useSettingsStore } from "@/stores/settings";
 import { MAP_APPS } from "@/util/mapApps";
 
-const SOURCE_CODE_URL = "https://github.com/it-at-m/parkhausradar";
 const FEEDBACK_SURVEY_URL = "https://umfrage.muenchen.de/index.php/577876";
-// Space below the button (16px margin, 48px button, 8px offset) and a 16px gap to the bottom of the screen
-const MENU_MAX_HEIGHT = "calc(100dvh - 88px)";
+// 8px around the button with its 16px margin, 16px gap to the bottom of the screen
+const MENU_INSET = "8px";
+const MENU_MAX_HEIGHT = "calc(100dvh - 24px)";
 
 const { t } = useI18n();
 const { xs } = useDisplay();
@@ -206,8 +198,9 @@ const overlayProps = computed(() =>
         closeOnBack: false,
       }
     : ({
-        location: "bottom end",
-        offset: 8,
+        locationStrategy: "static",
+        contentProps: { style: { top: MENU_INSET, right: MENU_INSET } },
+        transition: { component: RevealTransition },
         closeOnContentClick: false,
         closeOnBack: false,
         // The menu clips the card to its own radius, which is the smaller one of dropdowns

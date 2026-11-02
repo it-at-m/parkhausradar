@@ -90,9 +90,14 @@ function toggle() {
 }
 
 // On small screens the list is shown in a dialog outside of the wrapper, which keeps it while fading out
+// On larger screens it stays mounted but hidden behind the details
 function listShown(): boolean {
   const list = document.querySelector("[data-test=garage-list]");
-  return list !== null && !list.closest(".v-overlay:not(.v-overlay--active)");
+  return (
+    list !== null &&
+    !list.classList.contains("behind-details") &&
+    !list.closest(".v-overlay:not(.v-overlay--active)")
+  );
 }
 
 function firstListItem(): HTMLElement {
@@ -146,7 +151,9 @@ describe("index view toggle", () => {
   test("switches from the map to the list and back", async () => {
     // given
     await mountIndex();
-    expect(toggle().attributes("aria-label")).toBe("Liste anzeigen");
+    expect(toggle().attributes("aria-label")).toBe(
+      "Parkhausradar, Liste anzeigen"
+    );
 
     // when
     await toggle().trigger("click");
@@ -224,9 +231,7 @@ describe("index list closing", () => {
     // when
     await navigation(() =>
       document
-        .querySelector<HTMLElement>(
-          "[data-test=garage-list] [data-test=panel-back-btn]"
-        )
+        .querySelector<HTMLElement>("[data-test=garage-list-back-btn]")
         ?.click()
     );
 
@@ -284,7 +289,7 @@ describe("index garage selection on small screens", () => {
     expect(wrapper?.get("[data-test=map]").text()).toBe("");
   });
 
-  test("keeps the details when the screen shrinks with the list next to them", async () => {
+  test("keeps the details when the screen shrinks with the list behind them", async () => {
     // given
     setScreenWidth(DESKTOP_WIDTH);
     await mountIndex("/?view=list&garage=P1");
@@ -365,9 +370,7 @@ describe("index details in the address", () => {
     const entriesWithDetails = window.history.length;
 
     // when
-    await navigation(() =>
-      wrapper?.get("[data-test=garage-details-close-btn]").trigger("click")
-    );
+    await navigation(() => toggle().trigger("click"));
 
     // then
     expect(router.currentRoute.value.query).toEqual({ view: "list" });
@@ -380,54 +383,69 @@ describe("index focus after closing the details", () => {
   test("returns the focus to the marker if the list is not shown", async () => {
     // given
     await mountIndex("/?garage=P1");
-    const closeButton = wrapper?.get("[data-test=garage-details-close-btn]");
-    (closeButton?.element as HTMLElement | undefined)?.focus();
+    document.querySelector<HTMLElement>("[data-garage-details]")?.focus();
 
     // when
-    await navigation(() => closeButton?.trigger("click"));
+    await navigation(() =>
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+    );
 
     // then
     expect(focusMarker).toHaveBeenCalledWith("P1");
   });
 });
 
-describe("index garage selection on medium screens", () => {
-  test("closes the list when a garage is selected, as the details do not fit next to it", async () => {
-    // given
-    setScreenWidth(TABLET_WIDTH);
-    await mountIndex("/?view=list");
+describe("index garage selection on larger screens", () => {
+  test.each([DESKTOP_WIDTH, TABLET_WIDTH])(
+    "replaces the list with the details at a width of %ipx",
+    async (width) => {
+      // given
+      setScreenWidth(width);
+      await mountIndex("/?view=list");
 
-    // when
+      // when
+      await navigation(() => firstListItem().click());
+
+      // then
+      expect(listShown()).toBe(false);
+      expect(router.currentRoute.value.query).toEqual({
+        view: "list",
+        garage: "P1",
+      });
+      expect(wrapper?.get("[data-test=map]").text()).toBe("Oper");
+      expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
+      expect(
+        wrapper?.find("[data-test=garage-details-close-btn]").exists()
+      ).toBe(false);
+    }
+  );
+
+  test("returns from the details to the list with the button in the header", async () => {
+    // given
+    await mountIndex("/?view=list");
     await navigation(() => firstListItem().click());
 
-    // then
-    expect(listShown()).toBe(false);
-    expect(router.currentRoute.value.query).toEqual({ garage: "P1" });
-    expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
-  });
-});
-
-describe("index garage selection on larger screens", () => {
-  test("keeps the list open while showing the details", async () => {
-    // given
-    await mountIndex("/?view=list");
-
     // when
-    await navigation(() =>
-      wrapper?.get("[data-test=garage-list-item]").trigger("click")
-    );
+    await navigation(() => toggle().trigger("click"));
 
     // then
     expect(listShown()).toBe(true);
-    expect(router.currentRoute.value.query).toEqual({
-      view: "list",
-      garage: "P1",
-    });
-    expect(wrapper?.get("[data-test=map]").text()).toBe("Oper");
-    expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
-    expect(
-      wrapper?.get("[data-test=garage-list-item]").attributes("aria-current")
-    ).toBe("true");
+    expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
+    expect(router.currentRoute.value.query).toEqual({ view: "list" });
+  });
+
+  test("returns from details opened on the map to the map with the button in the header", async () => {
+    // given
+    await mountIndex("/?garage=P1");
+
+    // when
+    await toggle().trigger("click");
+    await flushPromises();
+
+    // then
+    expect(listShown()).toBe(false);
+    expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
+    expect(router.currentRoute.value.query).toEqual({});
   });
 
   test("closes the details before the list on Escape", async () => {

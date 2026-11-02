@@ -7,6 +7,8 @@ export const enum STATUS_INDICATORS {
   ERROR = "error",
 }
 
+export const APP_NAME = "Parkhausradar";
+
 // Language independent symbol for parking, so it is not translated
 export const PARKING_SYMBOL = "P";
 
