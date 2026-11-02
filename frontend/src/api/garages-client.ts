@@ -99,12 +99,15 @@ export function toGarage(thing: FrostThing): Garage {
   };
 }
 
+// URL.canParse is missing before Safari 17, the build targets Safari 16.4
 function isWebUrl(value: string): boolean {
-  if (!URL.canParse(value)) {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
     return false;
   }
-  const { protocol } = new URL(value);
-  return protocol === "https:" || protocol === "http:";
+  return url.protocol === "https:" || url.protocol === "http:";
 }
 
 function latestMeasurement(
