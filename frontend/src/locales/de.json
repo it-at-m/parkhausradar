@@ -32,8 +32,7 @@
       "about": "Über das Parkhausradar",
       "imprint": "Impressum",
       "privacy": "Datenschutzerklärung",
-      "accessibility": "Barrierefreiheitserklärung",
-      "sourceCode": "Quellcode auf GitHub"
+      "accessibility": "Barrierefreiheitserklärung"
     },
     "garageDetails": {
       "close": "Details schließen",
@@ -56,7 +55,7 @@
       "loading": "Parkhäuser werden geladen",
       "loadError": "Die Parkhäuser konnten nicht geladen werden.",
       "empty": "Keine Parkhäuser verfügbar.",
-      "close": "Liste schließen"
+      "close": "Parkhausradar, Liste schließen"
     },
     "garageRouteDialog": {
       "title": "Route zu {name}",
@@ -71,7 +70,7 @@
   },
   "routes": {
     "index": {
-      "showList": "Liste anzeigen"
+      "showList": "Parkhausradar, Liste anzeigen"
     },
     "info": {
       "title": "Über das Parkhausradar",

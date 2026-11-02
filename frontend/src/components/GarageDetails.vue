@@ -30,7 +30,7 @@
             size="40"
           >
             <span
-              class="text-title-medium font-weight-bold"
+              class="text-title-medium font-weight-semibold"
               :style="{ color: colors.foreground }"
             >
               {{ PARKING_SYMBOL }}
@@ -55,7 +55,10 @@
           />
           {{ garage.address }}
         </v-card-subtitle>
-        <template #append>
+        <template
+          v-if="xs"
+          #append
+        >
           <v-icon-btn
             data-test="garage-details-close-btn"
             :icon="mdiClose"
@@ -78,7 +81,7 @@
           <template v-if="garage.freeSpaces">
             <p class="d-flex align-baseline ga-2">
               <span
-                class="free-spaces text-display-small font-weight-bold"
+                class="free-spaces text-display-small font-weight-medium"
                 data-test="garage-details-free-spaces"
               >
                 {{ garage.freeSpaces.value }}
@@ -104,7 +107,7 @@
               rounded
             />
             <div
-              class="d-flex justify-space-between ga-4 text-body-small text-medium-emphasis"
+              class="meta d-flex justify-space-between ga-4 text-body-small text-medium-emphasis"
               :class="{ 'mt-3': occupancy === null }"
             >
               <span v-if="occupancy !== null">
@@ -250,7 +253,6 @@ function showRoute() {
   }
 }
 
-// The share sheet of the device where there is one, otherwise the link is copied
 async function share() {
   const url = getGarageLink(props.garage.pNumber);
   try {
@@ -316,7 +318,7 @@ useEventListener(document, "keydown", (event: KeyboardEvent) => {
   }
 });
 
-// Moves keyboard users to the details, the next tab stop is the close button
+// Moves keyboard users to the details
 onMounted(() => root.value?.focus({ preventScroll: true }));
 </script>
 
@@ -333,15 +335,8 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
   left: 0;
 }
 
-/* As wide as the name, long names wrap instead of stretching the card across the map */
-.garage-details.desktop {
-  width: max-content;
-  min-width: 320px;
-  max-width: 480px;
-}
-
 .card {
-  transition: transform 150ms ease;
+  transition: transform 150ms var(--standard-easing);
 }
 
 .mobile .card {
@@ -363,11 +358,16 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
 /* The marker colors are too light or too dark as text on one of the surfaces */
 .free-spaces {
   color: v-bind("colors.textLight");
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .v-theme--dark .free-spaces {
   color: v-bind("colors.textDark");
+}
+
+.meta {
+  letter-spacing: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

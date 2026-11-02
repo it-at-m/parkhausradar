@@ -7,13 +7,28 @@
     tabindex="-1"
     aria-labelledby="garage-list-title"
   >
-    <panel-card
-      class="card"
-      :title="t('components.garageList.title')"
-      title-id="garage-list-title"
-      :close-label="t('components.garageList.close')"
-      @close="emit('close')"
+    <v-card
+      class="card d-flex flex-column"
+      :rounded="xs ? 0 : undefined"
+      :color="xs ? 'grouped-background' : undefined"
+      :flat="xs"
     >
+      <div :class="{ 'px-4 pt-4': xs }">
+        <app-name-button
+          v-if="xs"
+          data-test="garage-list-back-btn"
+          :icon="mdiArrowLeft"
+          variant="text"
+          :aria-label="t('components.garageList.close')"
+          @click="emit('close')"
+        />
+        <h2
+          id="garage-list-title"
+          class="d-sr-only"
+        >
+          {{ t("components.garageList.title") }}
+        </h2>
+      </div>
       <!-- On small screens the garages form one group like the pages on iOS -->
       <v-sheet
         v-if="sortedGarages.length"
@@ -42,7 +57,7 @@
             >
               <template #prepend>
                 <v-chip
-                  class="free-spaces justify-center me-3 font-weight-bold"
+                  class="free-spaces justify-center me-3 font-weight-medium"
                   data-test="garage-list-free-spaces"
                   :color="getStatusColors(garage).background"
                   :style="{ color: getStatusColors(garage).foreground }"
@@ -59,9 +74,8 @@
                 </v-chip>
               </template>
               <template #title>
-                <!-- Long names wrap instead of being cut off -->
                 <span
-                  class="d-block text-title-small font-weight-semibold text-wrap"
+                  class="d-block text-title-small text-wrap"
                   data-test="garage-list-name"
                 >
                   {{ garage.name }}
@@ -77,7 +91,7 @@
               </template>
               <template #append>
                 <span
-                  class="ms-3 text-body-small text-medium-emphasis text-no-wrap"
+                  class="occupancy ms-3 text-body-small text-medium-emphasis text-no-wrap"
                   data-test="garage-list-occupancy"
                 >
                   {{ describeOccupancy(garage) }}
@@ -106,19 +120,20 @@
             : t("components.garageList.empty")
         }}
       </p>
-    </panel-card>
+    </v-card>
   </section>
 </template>
 
 <script setup lang="ts">
 import type { Garage } from "@/types/Garage";
 
+import { mdiArrowLeft } from "@mdi/js";
 import { useEventListener, useIntervalFn, useNow } from "@vueuse/core";
 import { computed, onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 
-import PanelCard from "@/components/PanelCard.vue";
+import AppNameButton from "@/components/AppNameButton.vue";
 import { useGarages } from "@/composables/useGarages";
 import { GARAGE_STATUS_COLORS, UNKNOWN_FREE_SPACES } from "@/constants";
 import { toPercentString } from "@/util/formatter";
@@ -179,7 +194,7 @@ function focusGarage(pNumber: string) {
 
 defineExpose({ focusGarage });
 
-// Moves keyboard users to the list, the next tab stop is the first garage
+// Moves keyboard users to the list
 onMounted(() => root.value?.focus({ preventScroll: true }));
 </script>
 
@@ -214,5 +229,10 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
 /* Wide enough for four digits, so the names of all garages start at the same position */
 .free-spaces {
   width: 80px;
+  font-variant-numeric: tabular-nums;
+}
+
+.occupancy {
+  letter-spacing: 0;
 }
 </style>

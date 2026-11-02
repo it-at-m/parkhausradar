@@ -32,8 +32,7 @@
       "about": "About Parkhausradar",
       "imprint": "Imprint",
       "privacy": "Privacy policy",
-      "accessibility": "Accessibility statement",
-      "sourceCode": "Source code on GitHub"
+      "accessibility": "Accessibility statement"
     },
     "garageDetails": {
       "close": "Close details",
@@ -56,7 +55,7 @@
       "loading": "Loading parking garages",
       "loadError": "The parking garages could not be loaded.",
       "empty": "No parking garages available.",
-      "close": "Close list"
+      "close": "Parkhausradar, close list"
     },
     "garageRouteDialog": {
       "title": "Route to {name}",
@@ -71,7 +70,7 @@
   },
   "routes": {
     "index": {
-      "showList": "Show list"
+      "showList": "Parkhausradar, show list"
     },
     "info": {
       "title": "About Parkhausradar",

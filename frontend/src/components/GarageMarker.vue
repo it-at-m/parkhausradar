@@ -129,7 +129,7 @@ onBeforeUnmount(() => marker.remove());
   cursor: pointer;
   /* Scales around the tip, so the marker keeps pointing at the garage */
   transform-origin: 50% 100%;
-  transition: transform 150ms ease;
+  transition: transform 150ms var(--standard-easing);
 }
 
 .garage-marker.selected {
@@ -140,15 +140,15 @@ onBeforeUnmount(() => marker.remove());
   position: relative;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   height: 28px;
-  padding: 0 10px 0 2px;
+  padding: 0 12px 0 2px;
   border: 2px solid #fff;
   border-radius: 14px;
   background: var(--garage-marker-background);
   color: var(--garage-marker-foreground);
   filter: drop-shadow(0 1.5px 2.5px rgba(0, 0, 0, 0.3));
-  transition: transform 150ms ease;
+  transition: transform 150ms var(--standard-easing);
 }
 
 /*

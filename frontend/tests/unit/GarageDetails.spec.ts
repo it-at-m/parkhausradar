@@ -219,16 +219,19 @@ describe("GarageDetails closing", () => {
   test.for([
     {
       trigger: "the close button",
+      width: MOBILE_WIDTH,
       close: (wrapper: ReturnType<typeof mountDetails>) =>
         wrapper.get("[data-test=garage-details-close-btn]").trigger("click"),
     },
     {
       trigger: "Escape",
+      width: DESKTOP_WIDTH,
       close: () =>
         document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })),
     },
-  ])("closes via $trigger", async ({ close }) => {
+  ])("closes via $trigger", async ({ width, close }) => {
     // given
+    await setScreenWidth(width);
     const wrapper = mountDetails(createGarage());
 
     // when
