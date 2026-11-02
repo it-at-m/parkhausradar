@@ -42,6 +42,7 @@
       "occupied": "{percent} occupied",
       "updated": "Updated {time}",
       "noData": "No current occupancy data",
+      "operatorWebsite": "Operator website",
       "route": "Route",
       "share": "Share",
       "linkCopied": "Link copied",

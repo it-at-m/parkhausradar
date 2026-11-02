@@ -142,6 +142,7 @@
           <div class="d-flex ga-2 mt-3">
             <!-- Opens the remembered app directly, otherwise lets users choose one -->
             <v-btn
+              class="flex-grow-1"
               data-test="garage-details-route-btn"
               :href="routeUrl"
               :target="routeUrl ? '_blank' : undefined"
@@ -151,11 +152,26 @@
               color="primary"
               @click="showRoute"
             />
+            <!-- Icon buttons grow beyond the button height at default density -->
             <v-btn
-              data-test="garage-details-share-btn"
-              :prepend-icon="mdiShareVariant"
-              :text="t('components.garageDetails.share')"
+              v-if="garage.operatorUrl"
+              v-tooltip:top="t('components.garageDetails.operatorWebsite')"
+              data-test="garage-details-operator-link"
+              :href="garage.operatorUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              :icon="mdiWeb"
+              :aria-label="t('components.garageDetails.operatorWebsite')"
               :color="innerSurfaceColor"
+              density="comfortable"
+            />
+            <v-btn
+              v-tooltip:top="t('components.garageDetails.share')"
+              data-test="garage-details-share-btn"
+              :icon="mdiShareVariant"
+              :aria-label="t('components.garageDetails.share')"
+              :color="innerSurfaceColor"
+              density="comfortable"
               @click="share"
             />
           </div>
@@ -177,6 +193,7 @@ import {
   mdiDirections,
   mdiMapMarker,
   mdiShareVariant,
+  mdiWeb,
 } from "@mdi/js";
 import { useEventListener, useIntervalFn, useNow } from "@vueuse/core";
 import { computed, onMounted, ref, useTemplateRef } from "vue";
@@ -207,7 +224,7 @@ const emit = defineEmits<{
 }>();
 
 const ACTION_BUTTON_DEFAULTS = {
-  VBtn: { class: "flex-1-1-0", variant: "flat", size: "large", rounded: "lg" },
+  VBtn: { variant: "flat", size: "large", rounded: "lg" },
 };
 
 // Distance the sheet has to be dragged down on mobile to close it

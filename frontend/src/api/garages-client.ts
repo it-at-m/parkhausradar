@@ -81,6 +81,10 @@ export function toGarage(thing: FrostThing): Garage {
     );
   }
 
+  if (operatorUrl !== null && !isWebUrl(operatorUrl)) {
+    throw new Error(`${pNumber}: operatorUrl "${operatorUrl}" is no web URL`);
+  }
+
   return {
     pNumber,
     name,
@@ -93,6 +97,14 @@ export function toGarage(thing: FrostThing): Garage {
     freeSpaces: latestMeasurement(pNumber, thing.Datastreams, "freeSpaces"),
     capacity: latestMeasurement(pNumber, thing.Datastreams, "capacity"),
   };
+}
+
+function isWebUrl(value: string): boolean {
+  if (!URL.canParse(value)) {
+    return false;
+  }
+  const { protocol } = new URL(value);
+  return protocol === "https:" || protocol === "http:";
 }
 
 function latestMeasurement(

@@ -171,6 +171,21 @@ describe("toGarage", () => {
     );
   });
 
+  test.for([
+    { operatorUrl: "operngarage.de" },
+    { operatorUrl: "javascript:alert(1)" },
+  ])("rejects the operator URL '$operatorUrl'", ({ operatorUrl }) => {
+    // given
+    const invalidUrl = thing({
+      properties: { pNumber: "P3", address: null, operatorUrl },
+    });
+
+    // then
+    expect(() => toGarage(invalidUrl)).toThrow(
+      `P3: operatorUrl "${operatorUrl}" is no web URL`
+    );
+  });
+
   test("rejects an invalid phenomenon time", () => {
     // given
     const original = thing();
