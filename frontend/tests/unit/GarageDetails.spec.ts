@@ -158,6 +158,29 @@ describe("GarageDetails content", () => {
     );
   });
 
+  test("links the website of the operator in a new tab", () => {
+    // when
+    const wrapper = mountDetails(
+      createGarage({ operatorUrl: "https://www.operngarage.de/" })
+    );
+
+    // then
+    const link = wrapper.get("[data-test=garage-details-operator-link]");
+    expect(link.attributes("aria-label")).toBe("Website des Betreibers");
+    expect(link.attributes("href")).toBe("https://www.operngarage.de/");
+    expect(link.attributes("target")).toBe("_blank");
+  });
+
+  test("leaves out the operator website if it is unknown", () => {
+    // when
+    const wrapper = mountDetails(createGarage());
+
+    // then
+    expect(
+      wrapper.find("[data-test=garage-details-operator-link]").exists()
+    ).toBe(false);
+  });
+
   test("explains missing occupancy data", () => {
     // when
     const wrapper = mountDetails(
@@ -384,6 +407,18 @@ describe("GarageDetails sharing", () => {
     const { pathname, searchParams } = new URL(url);
     return { pathname, garage: searchParams.get("garage") };
   }
+
+  test("names the share button, which only shows an icon", () => {
+    // when
+    const wrapper = mountDetails(createGarage());
+
+    // then
+    expect(
+      wrapper
+        .get("[data-test=garage-details-share-btn]")
+        .attributes("aria-label")
+    ).toBe("Teilen");
+  });
 
   test("shares a link to the garage with the share sheet of the device", async () => {
     // given

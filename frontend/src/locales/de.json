@@ -42,6 +42,7 @@
       "occupied": "{percent} belegt",
       "updated": "Stand: {time}",
       "noData": "Keine aktuellen Belegungsdaten",
+      "operatorWebsite": "Website des Betreibers",
       "route": "Route",
       "share": "Teilen",
       "linkCopied": "Link kopiert",

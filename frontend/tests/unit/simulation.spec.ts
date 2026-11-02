@@ -8,6 +8,7 @@ import {
   createSimulation,
   FAULT_SCENARIOS,
 } from "../../simulator/simulation";
+import { toGarage } from "../../src/api/garages-client";
 
 const GARAGES = garages as SimulatedGarage[];
 
@@ -88,6 +89,17 @@ describe("createSimulation", () => {
         "entrance"
       );
     }
+  });
+
+  test("returns garages the app accepts, with and without operator website", () => {
+    // when
+    const appGarages = createSimulation(GARAGES, start, seededRandom(1))
+      .things()
+      .map(toGarage);
+
+    // then
+    expect(appGarages.some((g) => g.operatorUrl !== null)).toBe(true);
+    expect(appGarages.some((g) => g.operatorUrl === null)).toBe(true);
   });
 
   test("keeps the free spaces of a frozen counter over the day", () => {

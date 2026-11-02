@@ -3,7 +3,7 @@
     "pNumber": "P3",
     "name": "Salvatorplatz",
     "address": "Salvatorplatz",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.q-park.de/de-de/staedte/m%C3%BCnchen/salvatorplatz-altstadt/",
     "location": [
       11.574566804242702,
       48.14226715163222
@@ -19,7 +19,7 @@
     "pNumber": "P6",
     "name": "Schrannenhalle",
     "address": "Prälat-Zistl-Straße 3",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.q-park.de/de-de/staedte/m%C3%BCnchen/schrannenhalle-viktualienmarkt/",
     "location": [
       11.57387705400834,
       48.13408625120279
@@ -35,7 +35,7 @@
     "pNumber": "P8",
     "name": "Pschorr",
     "address": "Altheimer Eck 16",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.q-park.de/de-de/staedte/m%C3%BCnchen/pschorr-garage-altstadt/",
     "location": [
       11.569812331263554,
       48.137691308371075
@@ -51,7 +51,7 @@
     "pNumber": "P9",
     "name": "Oberpollinger",
     "address": "Maxburgstraße 7",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.oberpollinger.de/ihr-besuch-bei-uns/",
     "location": [
       11.568859299439804,
       48.140070580834966
@@ -67,7 +67,7 @@
     "pNumber": "P14",
     "name": "Oberanger",
     "address": "Oberanger 27",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.contipark.de/de/parken/muenchen/tiefgarage-oberanger/",
     "location": [
       11.571280573646892,
       48.134626749409605
@@ -83,7 +83,7 @@
     "pNumber": "P15",
     "name": "Hofbräuhaus",
     "address": "Thomas-Wimmer-Ring 9a",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.q-park.de/de-de/staedte/m%C3%BCnchen/hofbr%C3%A4uhaus/",
     "location": [
       11.584608900039248,
       48.13667441935935
@@ -99,7 +99,7 @@
     "pNumber": "P17",
     "name": "Oper",
     "address": "Max-Joseph-Platz 4",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.operngarage.de/",
     "location": [
       11.577765576094464,
       48.14023164082478
@@ -115,7 +115,7 @@
     "pNumber": "P18",
     "name": "Färbergraben",
     "address": "Färbergraben 5",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.city-parkhaus-muenchen.de/",
     "location": [
       11.571627164837071,
       48.137401906891014
@@ -147,7 +147,7 @@
     "pNumber": "P24",
     "name": "Hauptbahnhof Süd",
     "address": "Senefelderstr. 6",
-    "operatorUrl": null,
+    "operatorUrl": "https://www.contipark.de/de/parken/muenchen/tiefgarage-hauptbahnhof-sued-p4/",
     "location": [
       11.560111641825463,
       48.13855506735079

@@ -81,6 +81,10 @@ export function toGarage(thing: FrostThing): Garage {
     );
   }
 
+  if (operatorUrl !== null && !isWebUrl(operatorUrl)) {
+    throw new Error(`${pNumber}: operatorUrl "${operatorUrl}" is no web URL`);
+  }
+
   return {
     pNumber,
     name,
@@ -93,6 +97,17 @@ export function toGarage(thing: FrostThing): Garage {
     freeSpaces: latestMeasurement(pNumber, thing.Datastreams, "freeSpaces"),
     capacity: latestMeasurement(pNumber, thing.Datastreams, "capacity"),
   };
+}
+
+// URL.canParse is missing before Safari 17, the build targets Safari 16.4
+function isWebUrl(value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  return url.protocol === "https:" || url.protocol === "http:";
 }
 
 function latestMeasurement(

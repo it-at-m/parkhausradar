@@ -5,6 +5,7 @@ import type { FrostDatastream, FrostThing } from "../src/api/frost.ts";
 export interface SimulatedGarage {
   pNumber: string;
   name: string;
+  operatorUrl: string | null;
   capacity: number;
   location: [number, number];
   entrances: [number, number][];
@@ -153,7 +154,7 @@ export function createSimulation(
         properties: {
           pNumber: garage.pNumber,
           address: null,
-          operatorUrl: null,
+          operatorUrl: garage.operatorUrl,
         },
         Locations: [
           {
