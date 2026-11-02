@@ -4,7 +4,7 @@ name: parkhaus-stack
 
 services:
   postgis:
-    image: postgis/postgis:18-3.6-alpine@sha256:ffcf0c4b904e41b9779f8098007fb5a9484025319c18c70cf8e1bcebb742b9b7
+    image: postgis/postgis:18-3.6-alpine@sha256:c53a483fc274072dfa02cd491efa79f3c8ae0a10774a0ece6c9c53b6a632cdef
     environment:
       POSTGRES_DB: sensorthings
       POSTGRES_USER: sensorthings
@@ -41,7 +41,7 @@ services:
       retries: 30
 
   frost-indexes:
-    image: postgis/postgis:18-3.6-alpine@sha256:ffcf0c4b904e41b9779f8098007fb5a9484025319c18c70cf8e1bcebb742b9b7
+    image: postgis/postgis:18-3.6-alpine@sha256:c53a483fc274072dfa02cd491efa79f3c8ae0a10774a0ece6c9c53b6a632cdef
     depends_on:
       frost:
         condition: service_healthy
