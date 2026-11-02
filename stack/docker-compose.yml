@@ -18,7 +18,7 @@ services:
       retries: 20
 
   frost:
-    image: fraunhoferiosb/frost-server-http:2.8.1@sha256:daa1672b9322ad379807f7cf27ef473450267d47cfb32776e1f4b0f7dae8d242
+    image: fraunhoferiosb/frost-server-http:2.8.2@sha256:d580d8132863bc66e77b7032998b556328edaf05460d12666a0a8ba81e928c11
     depends_on:
       postgis:
         condition: service_healthy
