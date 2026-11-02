@@ -2,7 +2,7 @@
 name = "parkhausradar-collector"
 version = "0.1.0"
 description = "Writes the occupancy of the Munich parking garages to the FROST-Server"
-requires-python = ">=3.14"
+requires-python = "==3.15.2"
 dependencies = []
 
 [dependency-groups]
