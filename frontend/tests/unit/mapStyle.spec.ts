@@ -91,6 +91,7 @@ describe("createMapStyle", () => {
   const options = {
     assetBaseUrl: "https://example.org/map/",
     tilesetFile: "muenchen-20261010.pmtiles",
+    lang: "de",
     cityBoundary: multiPolygonBoundary,
   };
 
@@ -125,6 +126,16 @@ describe("createMapStyle", () => {
       expect(style.glyphs).toBeUndefined();
     }
   );
+
+  test.for(["de", "en"])("labels the map with the %s names", (lang) => {
+    // when
+    const style = createMapStyle({ ...options, theme: "light", lang });
+
+    // then
+    expect(JSON.stringify(style.layers)).toContain(
+      JSON.stringify(["get", `name:${lang}`])
+    );
+  });
 
   test("attributes OpenStreetMap with a link to its copyright page", () => {
     // when

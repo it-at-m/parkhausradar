@@ -1,4 +1,5 @@
 import type { VueWrapper } from "@vue/test-utils";
+import type { StyleSpecification } from "maplibre-gl";
 
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
@@ -17,19 +18,25 @@ const { maps } = vi.hoisted(() => ({ maps: [] as FakeMap[] }));
 interface FakeMap {
   container: HTMLElement;
   easeTo: ReturnType<typeof vi.fn>;
+  style: StyleSpecification;
   click(target: Element): void;
 }
 
 vi.mock("maplibre-gl", () => {
   class Map {
     container: HTMLElement;
+    style: StyleSpecification;
     easeTo = vi.fn();
     touchZoomRotate = { disableRotation: vi.fn() };
     keyboard = { disableRotation: vi.fn() };
     private clickHandlers: ((event: { originalEvent: Event }) => void)[] = [];
 
-    constructor(options: { container: HTMLElement }) {
+    constructor(options: {
+      container: HTMLElement;
+      style: StyleSpecification;
+    }) {
       this.container = options.container;
+      this.style = options.style;
       maps.push(this);
     }
 
@@ -50,7 +57,8 @@ vi.mock("maplibre-gl", () => {
       return 13;
     }
 
-    setStyle() {
+    setStyle(style: StyleSpecification) {
+      this.style = style;
       return this;
     }
 
@@ -395,6 +403,24 @@ describe("TheMap selection", () => {
     // then
     expect(afterMarkerClick?.pNumber).toBe("P1");
     expect(lastSelectedGarage()).toBeNull();
+  });
+});
+
+describe("TheMap labels", () => {
+  test("labels the map in the language of the app", async () => {
+    // given
+    await mountMap();
+    const germanLabels = JSON.stringify(fakeMap().style.layers);
+
+    // when
+    i18n.global.locale.value = "en";
+    await flushPromises();
+
+    // then
+    expect(germanLabels).toContain('["get","name:de"]');
+    expect(JSON.stringify(fakeMap().style.layers)).toContain(
+      '["get","name:en"]'
+    );
   });
 });
 
