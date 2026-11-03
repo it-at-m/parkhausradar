@@ -290,7 +290,7 @@ describe("TheSettings feedback", () => {
 
     // then
     const link = findByDataTest("settings-feedback-link");
-    expect(link.textContent.trim()).toBe("Take the survey");
+    expect(link.textContent.trim()).toBe("Tell us what you think");
     expect(link.getAttribute("href")).toBe(
       "https://umfrage.muenchen.de/index.php/577876"
     );
