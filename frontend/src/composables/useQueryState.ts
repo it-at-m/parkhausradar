@@ -19,12 +19,25 @@ export function useQueryState() {
     return typeof value === "string" ? value : null;
   }
 
-  function back(): Promise<void> {
-    return new Promise((resolve) => {
-      const removeHook = router.afterEach(() => {
-        removeHook();
-        resolve();
+  // A cancelled navigation also reaches afterEach, with the failure as its third argument
+  function back(target: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const removeAfterEach = router.afterEach((to) => {
+        if (to.fullPath === target) {
+          removeHooks();
+          resolve();
+        }
       });
+      const removeOnError = router.onError((error, to) => {
+        if (to.fullPath === target) {
+          removeHooks();
+          reject(error);
+        }
+      });
+      function removeHooks() {
+        removeAfterEach();
+        removeOnError();
+      }
       router.back();
     });
   }
@@ -32,7 +45,7 @@ export function useQueryState() {
   async function apply(changes: QueryChanges) {
     const target = router.resolve({ query: { ...route.query, ...changes } });
     if (router.options.history.state.back === target.fullPath) {
-      await back();
+      await back(target.fullPath);
       return;
     }
     const opens = Object.entries(changes).some(
