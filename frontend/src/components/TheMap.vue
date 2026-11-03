@@ -104,7 +104,7 @@ const INITIAL_BOUNDS: [number, number, number, number] = [
 // Close enough to tell the streets around a garage apart, the map never zooms out on selection
 const SELECTED_GARAGE_MIN_ZOOM = 15;
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const theme = useTheme();
 const snackbarStore = useSnackbarStore();
 const mapContainer = useTemplateRef("mapContainer");
@@ -144,6 +144,7 @@ function currentStyle() {
     assetBaseUrl: ASSET_BASE_URL,
     tilesetFile: basemap.file,
     theme: mapTheme,
+    lang: locale.value,
     cityBoundary,
   });
 }
@@ -232,9 +233,8 @@ watch(() => selectedGarage.value?.pNumber, showSelectedGarage);
 // Separate sources, as the inset object is replaced whenever the selected garage is refreshed.
 watch([() => props.inset.left, () => props.inset.bottom], showSelectedGarage);
 
-watch(
-  () => theme.global.current.value.dark,
-  () => map.value?.setStyle(currentStyle())
+watch([() => theme.global.current.value.dark, locale], () =>
+  map.value?.setStyle(currentStyle())
 );
 
 function focusMarker(pNumber: string) {

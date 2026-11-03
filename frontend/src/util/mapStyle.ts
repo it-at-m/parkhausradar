@@ -89,6 +89,8 @@ export interface MapStyleOptions {
   assetBaseUrl: string;
   tilesetFile: string;
   theme: MapTheme;
+  /** Language of the labels, falling back to the local names where OpenStreetMap lacks a translation. */
+  lang: string;
   /** Dims everything outside the city once the boundary has been loaded. */
   cityBoundary?: Feature<Polygon | MultiPolygon>;
 }
@@ -116,6 +118,7 @@ export function createMapStyle({
   assetBaseUrl,
   tilesetFile,
   theme,
+  lang,
   cityBoundary,
 }: MapStyleOptions): StyleSpecification {
   const flavor = namedFlavor(theme);
@@ -130,7 +133,7 @@ export function createMapStyle({
         attribution: MAP_ATTRIBUTION,
       },
     },
-    layers: layers(BASEMAP_SOURCE, flavor, { lang: "de" }),
+    layers: layers(BASEMAP_SOURCE, flavor, { lang }),
   };
 
   if (cityBoundary) {
