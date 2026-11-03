@@ -47,4 +47,23 @@ watch(
 :root {
   --standard-easing: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Vuetify only hints the keyboard focus with a faint border, which is hardly visible */
+.v-btn:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-on-surface));
+  outline-offset: 2px;
+}
+
+/* Inside, as the scrolling lists would clip an outline */
+.v-list-item:focus-visible::after {
+  opacity: 1;
+}
+
+.v-list-item::after {
+  border-radius: inherit;
+}
+
+.v-selection-control--focus-visible .v-selection-control__input {
+  outline: 2px solid currentColor;
+}
 </style>

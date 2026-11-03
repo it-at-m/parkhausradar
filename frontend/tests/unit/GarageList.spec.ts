@@ -117,6 +117,17 @@ describe("GarageList content", () => {
       occupancy: "",
     },
     {
+      case: "with outdated counts",
+      overrides: {
+        freeSpaces: {
+          value: 312,
+          measuredAt: new Date(NOW.getTime() - 20 * MINUTE),
+        },
+      },
+      freeSpaces: "312 frei",
+      occupancy: "Stand veraltet",
+    },
+    {
       case: "without any counts",
       overrides: { freeSpaces: null, capacity: null },
       freeSpaces: "?",

@@ -24,8 +24,11 @@ export default createVuetify({
           primary: "#333333",
           secondary: "#FFCC00",
           accent: "#7BA4D9",
-          success: "#69BE28",
-          error: "#FF0000",
+          // Dark enough for white text and for text on the surfaces, like the snackbars and the tonal alerts
+          success: "#1A7F37",
+          error: "#C62828",
+          info: "#1565C0",
+          "on-warning": "#000000",
           // Behind the content of full screen pages, which forms groups on the surface color
           "grouped-background": "#EEEEEE",
         },
@@ -42,7 +45,12 @@ export default createVuetify({
           secondary: "#FFCC00",
           accent: "#90CAF9",
           success: "#81C784",
+          // Light, so they stand out on the dark surfaces, with dark text on them
           error: "#E57373",
+          "on-error": "#000000",
+          info: "#90CAF9",
+          "on-info": "#000000",
+          "on-warning": "#000000",
           "grouped-background": "#121212",
         },
         // Shadows hardly show on a dark map, a light ring outlines the surfaces instead
