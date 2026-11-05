@@ -1,5 +1,9 @@
 import type { Feature, MultiPolygon, Polygon, Position } from "geojson";
-import type { FontFacesSpecification, StyleSpecification } from "maplibre-gl";
+import type {
+  FontFacesSpecification,
+  LayerSpecification,
+  StyleSpecification,
+} from "maplibre-gl";
 
 import robotoItalic from "@fontsource/roboto/files/roboto-latin-400-italic.woff2?url";
 import robotoRegular from "@fontsource/roboto/files/roboto-latin-400-normal.woff2?url";
@@ -16,6 +20,31 @@ export const MAP_ATTRIBUTION =
 
 const BASEMAP_SOURCE = "protomaps";
 const CITY_MASK_SOURCE = "city-mask";
+const POI_LAYER = "pois";
+
+/**
+ * Points of interest that help to find one's way around the city.
+ * Protomaps also shows shops, restaurants and street furniture, which crowd the map around the garages.
+ */
+export const POI_KINDS = [
+  "aerodrome",
+  "attraction",
+  "beach",
+  "forest",
+  "garden",
+  "marina",
+  "museum",
+  "park",
+  "peak",
+  "stadium",
+  "station",
+  "theatre",
+  "townhall",
+  "university",
+  "zoo",
+  "school",
+  "library",
+];
 
 // Unicode ranges of the Fontsource "latin" and "latin-ext" subsets
 const LATIN = [
@@ -114,6 +143,21 @@ export function createCityMask(
   };
 }
 
+function withLandmarkPois(layers: LayerSpecification[]): LayerSpecification[] {
+  return layers.map((layer) =>
+    layer.id === POI_LAYER && layer.type === "symbol"
+      ? {
+          ...layer,
+          filter: [
+            "all",
+            ["in", ["get", "kind"], ["literal", POI_KINDS]],
+            [">=", ["zoom"], ["get", "min_zoom"]],
+          ],
+        }
+      : layer
+  );
+}
+
 export function createMapStyle({
   assetBaseUrl,
   tilesetFile,
@@ -133,7 +177,7 @@ export function createMapStyle({
         attribution: MAP_ATTRIBUTION,
       },
     },
-    layers: layers(BASEMAP_SOURCE, flavor, { lang }),
+    layers: withLandmarkPois(layers(BASEMAP_SOURCE, flavor, { lang })),
   };
 
   if (cityBoundary) {
