@@ -58,6 +58,7 @@
       "free": "{free} frei",
       "occupied": "{percent} belegt",
       "noData": "Keine Daten",
+      "outdated": "Stand veraltet",
       "loading": "Parkhäuser werden geladen",
       "loadError": "Die Parkhäuser konnten nicht geladen werden.",
       "empty": "Keine Parkhäuser verfügbar.",

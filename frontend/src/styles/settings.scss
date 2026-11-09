@@ -39,5 +39,11 @@ $floating-shadow-color: rgba(
   $card-title-font-weight: 600,
   $card-title-line-height: 1.75rem,
   $card-title-letter-spacing: 0,
-  $menu-elevation: 1
+  $menu-elevation: 1,
+  // The default outline of the fields is too faint to make out their boundaries (WCAG 1.4.11)
+  $field-outline-opacity: 0.55,
+  // Subtitles are dimmed on top of the high emphasis color of the title, this keeps them at the medium emphasis
+  $list-item-subtitle-opacity: calc(
+      var(--v-medium-emphasis-opacity) / var(--v-high-emphasis-opacity)
+    )
 );

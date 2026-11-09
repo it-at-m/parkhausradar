@@ -203,10 +203,10 @@ onBeforeUnmount(() => marker.remove());
   outline: none;
 }
 
-/* The symbol color stays visible on the map, unlike the light yellow of a limited garage */
+/* Dark and light rings around the white border, so one of them stands out on the light and the dark map */
 .garage-marker:focus-visible .pill {
-  outline: 3px solid var(--garage-marker-symbol);
-  outline-offset: 2px;
+  outline: 3px solid #000;
+  box-shadow: 0 0 0 5px #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
