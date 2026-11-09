@@ -5,6 +5,7 @@
     v-model="isOpen"
     :max-width="xs ? undefined : 400"
     :close-on-back="false"
+    aria-labelledby="garage-route-dialog-title"
   >
     <v-card
       data-test="garage-route-dialog"
@@ -13,6 +14,7 @@
     >
       <v-card-item>
         <v-card-title
+          id="garage-route-dialog-title"
           tag="h2"
           class="ma-0 text-wrap"
         >
@@ -24,16 +26,20 @@
       </v-card-item>
 
       <v-card-text class="pt-2">
-        <v-list
-          class="py-0"
+        <!-- A plain list instead of v-list, whose roles do not fit links and which only reaches the first one with Tab.
+             The role keeps the list in Safari, which drops lists without bullets. -->
+        <v-sheet
+          tag="ul"
+          role="list"
+          class="plain-list overflow-hidden"
           :border="!xs"
           rounded="lg"
         >
-          <template
+          <li
             v-for="(app, index) in MAP_APPS"
             :key="app"
+            :class="{ 'border-t': index > 0 }"
           >
-            <v-divider v-if="index > 0" />
             <v-list-item
               :data-test="`garage-route-${app}-link`"
               :href="getRouteUrl(app, garage)"
@@ -56,10 +62,11 @@
                   :icon="mdiOpenInNew"
                   size="small"
                 />
+                <span class="d-sr-only">{{ t("common.opensInNewTab") }}</span>
               </template>
             </v-list-item>
-          </template>
-        </v-list>
+          </li>
+        </v-sheet>
 
         <v-checkbox
           v-model="remember"

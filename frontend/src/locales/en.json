@@ -1,7 +1,12 @@
 {
+  "common": {
+    "opensInNewTab": "(opens in a new tab)"
+  },
   "components": {
     "theMap": {
       "label": "Map of Munich",
+      "canvasLabel": "Map view, pan with the arrow keys, zoom with plus and minus",
+      "toggleAttribution": "Show or hide attribution",
       "loadError": "The map could not be loaded.",
       "garage": "{name}: {free} of {capacity} free",
       "garageOutdated": "{name}: {free} of {capacity} free, outdated",
@@ -72,7 +77,8 @@
   },
   "routes": {
     "index": {
-      "showList": "Parkhausradar, show list"
+      "list": "Parkhausradar, parking garage list",
+      "closeDetails": "Parkhausradar, close details"
     },
     "info": {
       "title": "About Parkhausradar",

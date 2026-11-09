@@ -138,6 +138,19 @@ function showLoadError(error: unknown) {
   }
 }
 
+// MapLibre names its canvas and controls in English once on creation, they follow the language of the app instead
+function labelMapControls() {
+  mapContainer.value
+    ?.querySelector(".maplibregl-canvas")
+    ?.setAttribute("aria-label", t("components.theMap.canvasLabel"));
+  const attributionButton = mapContainer.value?.querySelector(
+    ".maplibregl-ctrl-attrib-button"
+  );
+  const toggleAttribution = t("components.theMap.toggleAttribution");
+  attributionButton?.setAttribute("title", toggleAttribution);
+  attributionButton?.setAttribute("aria-label", toggleAttribution);
+}
+
 function currentStyle() {
   const mapTheme: MapTheme = theme.global.current.value.dark ? "dark" : "light";
   return createMapStyle({
@@ -196,6 +209,7 @@ onMounted(async () => {
       }
     });
     map.value = created;
+    labelMapControls();
   } catch (error) {
     showLoadError(error);
     return;
@@ -236,6 +250,8 @@ watch([() => props.inset.left, () => props.inset.bottom], showSelectedGarage);
 watch([() => theme.global.current.value.dark, locale], () =>
   map.value?.setStyle(currentStyle())
 );
+
+watch(locale, labelMapControls);
 
 function focusMarker(pNumber: string) {
   mapContainer.value

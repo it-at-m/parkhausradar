@@ -49,7 +49,14 @@ afterEach(() => {
   wrapper = undefined;
   localStorage.clear();
   vi.restoreAllMocks();
+  setScreenWidth(1024);
 });
+
+// Vuetify reads the screen width on resize
+function setScreenWidth(width: number) {
+  window.innerWidth = width;
+  window.dispatchEvent(new Event("resize"));
+}
 
 async function mountApp(deviceLanguages: string[]) {
   vi.spyOn(navigator, "languages", "get").mockReturnValue(deviceLanguages);
@@ -173,9 +180,63 @@ describe("TheSettings opening", () => {
     ).toBe("false");
     expect(router.currentRoute.value.query).toEqual({});
   });
+
+  test("announces and names the panel as a dialog", async () => {
+    // given
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const panel = document.querySelector(".v-overlay--active[role=dialog]");
+    const titleId = panel?.getAttribute("aria-labelledby") ?? "";
+    expect(document.getElementById(titleId)?.textContent.trim()).toBe(
+      "Einstellungen"
+    );
+    const button = findByDataTest("settings-open-btn");
+    expect(button.getAttribute("aria-haspopup")).toBe("dialog");
+    expect(button.getAttribute("aria-controls")).toBe(panel?.id);
+    expect(button.getAttribute("aria-owns")).toBeNull();
+  });
+
+  test("names the full screen dialog on small screens", async () => {
+    // given
+    setScreenWidth(375);
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const dialog = document.querySelector(".v-overlay--active[role=dialog]");
+    const titleId = dialog?.getAttribute("aria-labelledby") ?? "";
+    expect(dialog?.classList.contains("v-dialog--fullscreen")).toBe(true);
+    expect(document.getElementById(titleId)?.textContent.trim()).toBe(
+      "Einstellungen"
+    );
+  });
 });
 
 describe("TheSettings theme", () => {
+  test("tells which theme is selected", async () => {
+    // given
+    await mountApp(["de-DE"]);
+    await openSettings();
+
+    // when
+    await click(findByDataTest("settings-theme-dark-btn"));
+
+    // then
+    expect(
+      ["light", "dark", "system"].map((theme) =>
+        findByDataTest(`settings-theme-${theme}-btn`).getAttribute(
+          "aria-pressed"
+        )
+      )
+    ).toEqual(["false", "true", "false"]);
+  });
+
   test("applies the selected theme", async () => {
     // given
     await mountApp(["de-DE"]);
@@ -290,7 +351,13 @@ describe("TheSettings feedback", () => {
 
     // then
     const link = findByDataTest("settings-feedback-link");
-    expect(link.textContent.trim()).toBe("Tell us what you think");
+    expect(link.querySelector(".v-list-item-title")?.textContent.trim()).toBe(
+      "Tell us what you think"
+    );
+    // Only screen readers announce that the link leaves the app
+    expect(link.querySelector(".d-sr-only")?.textContent.trim()).toBe(
+      "(opens in a new tab)"
+    );
     expect(link.getAttribute("href")).toBe(
       "https://umfrage.muenchen.de/index.php/577876"
     );
@@ -346,6 +413,22 @@ describe("TheSettings legal pages", () => {
     for (const link of links) {
       expect(link.tabIndex).toBeGreaterThanOrEqual(0);
     }
+  });
+
+  test("groups the page links in a navigation landmark", async () => {
+    // given
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const nav = document.querySelector("nav");
+    expect(nav?.getAttribute("role")).toBeNull();
+    expect(nav?.getAttribute("aria-label")).toBe(
+      "Informationen und Rechtliches"
+    );
+    expect(nav?.querySelectorAll("li > a")).toHaveLength(4);
   });
 
   test("returns to the settings it was opened from", async () => {

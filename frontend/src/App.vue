@@ -66,4 +66,11 @@ watch(
 .v-selection-control--focus-visible .v-selection-control__input {
   outline: 2px solid currentColor;
 }
+
+/* Lists of v-list-items outside of v-list, which gives links the wrong roles */
+.plain-list {
+  margin: 0;
+  padding-inline: 0;
+  list-style: none;
+}
 </style>

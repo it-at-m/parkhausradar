@@ -67,7 +67,11 @@
         href="https://www.datenschutz-bayern.de/service/complaint.html"
         target="_blank"
         rel="noopener noreferrer"
-        >Bayerischen Landesbeauftragten für den Datenschutz</a
+        >Bayerischen Landesbeauftragten für den Datenschutz<span
+          class="d-sr-only"
+        >
+          (öffnet in neuem Tab)</span
+        ></a
       >
       über die Verarbeitung zu beschweren.
     </p>
