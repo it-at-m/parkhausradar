@@ -7,6 +7,7 @@ import {
   createMapStyle,
   MAP_ATTRIBUTION,
   MAP_FONT_FACES,
+  POI_KINDS,
 } from "../../src/util/mapStyle";
 
 const outerRing = [
@@ -136,6 +137,26 @@ describe("createMapStyle", () => {
       JSON.stringify(["get", `name:${lang}`])
     );
   });
+
+  test.for(["light", "dark"] as const)(
+    "shows only landmarks as points of interest in the %s theme",
+    (theme) => {
+      // when
+      const style = createMapStyle({ ...options, theme });
+
+      // then
+      const poiLayer = style.layers.find((layer) => layer.id === "pois");
+      expect(poiLayer).toMatchObject({
+        filter: [
+          "all",
+          ["in", ["get", "kind"], ["literal", POI_KINDS]],
+          [">=", ["zoom"], ["get", "min_zoom"]],
+        ],
+      });
+      expect(POI_KINDS).toContain("station");
+      expect(POI_KINDS).not.toContain("restaurant");
+    }
+  );
 
   test("attributes OpenStreetMap with a link to its copyright page", () => {
     // when

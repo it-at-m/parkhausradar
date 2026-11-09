@@ -137,7 +137,11 @@ import AppNameButton from "@/components/AppNameButton.vue";
 import { useGarages } from "@/composables/useGarages";
 import { GARAGE_STATUS_COLORS, UNKNOWN_FREE_SPACES } from "@/constants";
 import { toPercentString } from "@/util/formatter";
-import { getGarageStatus, getOccupancy } from "@/util/garageStatus";
+import {
+  getGarageStatus,
+  getOccupancy,
+  isGarageDataOutdated,
+} from "@/util/garageStatus";
 import { isOverlayOpen } from "@/util/overlay";
 
 const props = defineProps<{
@@ -170,6 +174,10 @@ function getStatusColors(garage: Garage) {
 function describeOccupancy(garage: Garage): string | null {
   if (!garage.freeSpaces) {
     return t("components.garageList.noData");
+  }
+  // Tells the outdated counts apart without relying on the gray color alone
+  if (isGarageDataOutdated(garage, now.value)) {
+    return t("components.garageList.outdated");
   }
   const occupancy = getOccupancy(garage);
   return occupancy === null

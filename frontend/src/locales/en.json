@@ -58,6 +58,7 @@
       "free": "{free} free",
       "occupied": "{percent} occupied",
       "noData": "No data",
+      "outdated": "Outdated",
       "loading": "Loading parking garages",
       "loadError": "The parking garages could not be loaded.",
       "empty": "No parking garages available.",
@@ -76,7 +77,7 @@
   },
   "routes": {
     "index": {
-      "showList": "Parkhausradar, show list",
+      "list": "Parkhausradar, parking garage list",
       "closeDetails": "Parkhausradar, close details"
     },
     "info": {

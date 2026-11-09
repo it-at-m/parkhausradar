@@ -171,8 +171,9 @@ describe("index view toggle", () => {
   test("switches from the map to the list and back", async () => {
     // given
     await mountIndex();
+    // The name stays the same, aria-expanded tells whether the list is shown
     expect(toggle().attributes("aria-label")).toBe(
-      "Parkhausradar, Liste anzeigen"
+      "Parkhausradar, Parkhausliste"
     );
 
     // when

@@ -39,6 +39,14 @@ vi.mock("maplibre-gl", () => {
     }) {
       this.container = options.container;
       this.style = options.style;
+      // The elements MapLibre names in English
+      const canvas = document.createElement("canvas");
+      canvas.className = "maplibregl-canvas";
+      canvas.setAttribute("aria-label", "Map");
+      const attributionButton = document.createElement("summary");
+      attributionButton.className = "maplibregl-ctrl-attrib-button";
+      attributionButton.setAttribute("aria-label", "Toggle attribution");
+      this.container.append(canvas, attributionButton);
       maps.push(this);
     }
 
@@ -502,6 +510,30 @@ describe("TheMap labels", () => {
     expect(JSON.stringify(fakeMap().style.layers)).toContain(
       '["get","name:en"]'
     );
+  });
+
+  test("names the map controls in the language of the app", async () => {
+    // given
+    await mountMap();
+    const labels = () =>
+      [".maplibregl-canvas", ".maplibregl-ctrl-attrib-button"].map((selector) =>
+        fakeMap().container.querySelector(selector)?.getAttribute("aria-label")
+      );
+    const germanLabels = labels();
+
+    // when
+    i18n.global.locale.value = "en";
+    await flushPromises();
+
+    // then
+    expect(germanLabels).toEqual([
+      "Kartenansicht, mit den Pfeiltasten verschieben, mit Plus und Minus zoomen",
+      "Quellenangaben ein- oder ausblenden",
+    ]);
+    expect(labels()).toEqual([
+      "Map view, pan with the arrow keys, zoom with plus and minus",
+      "Show or hide attribution",
+    ]);
   });
 });
 
