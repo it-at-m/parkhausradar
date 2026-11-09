@@ -21,7 +21,7 @@
         :aria-label="
           detailsInPanel
             ? t('routes.index.closeDetails')
-            : t('routes.index.showList')
+            : t('routes.index.list')
         "
         :aria-expanded="detailsInPanel ? undefined : listVisible"
         @click="toggleView"

@@ -356,7 +356,7 @@ describe("GarageDetails route", () => {
     ).toEqual(["_blank", "_blank", "_blank", "_blank"]);
   });
 
-  test("names the dialog and reaches every map app with the Tab key", async () => {
+  test("names the dialog and makes every map app focusable", async () => {
     // given
     const wrapper = mountDetails(createGarage());
 
@@ -456,6 +456,7 @@ describe("GarageDetails sharing", () => {
       wrapper.get(`[data-test=${dataTest}]`).attributes("aria-describedby")
     );
     expect(describedBy[0]).toBeTruthy();
+    expect(describedBy[1]).toBeTruthy();
     expect(describedBy[0]).not.toBe(describedBy[1]);
   });
 

@@ -76,7 +76,7 @@
   },
   "routes": {
     "index": {
-      "showList": "Parkhausradar, Liste anzeigen",
+      "list": "Parkhausradar, Parkhausliste",
       "closeDetails": "Parkhausradar, Details schließen"
     },
     "info": {

@@ -49,7 +49,14 @@ afterEach(() => {
   wrapper = undefined;
   localStorage.clear();
   vi.restoreAllMocks();
+  setScreenWidth(1024);
 });
+
+// Vuetify reads the screen width on resize
+function setScreenWidth(width: number) {
+  window.innerWidth = width;
+  window.dispatchEvent(new Event("resize"));
+}
 
 async function mountApp(deviceLanguages: string[]) {
   vi.spyOn(navigator, "languages", "get").mockReturnValue(deviceLanguages);
@@ -191,6 +198,23 @@ describe("TheSettings opening", () => {
     expect(button.getAttribute("aria-haspopup")).toBe("dialog");
     expect(button.getAttribute("aria-controls")).toBe(panel?.id);
     expect(button.getAttribute("aria-owns")).toBeNull();
+  });
+
+  test("names the full screen dialog on small screens", async () => {
+    // given
+    setScreenWidth(375);
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    const dialog = document.querySelector(".v-overlay--active[role=dialog]");
+    const titleId = dialog?.getAttribute("aria-labelledby") ?? "";
+    expect(dialog?.classList.contains("v-dialog--fullscreen")).toBe(true);
+    expect(document.getElementById(titleId)?.textContent.trim()).toBe(
+      "Einstellungen"
+    );
   });
 });
 

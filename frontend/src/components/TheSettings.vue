@@ -134,8 +134,10 @@
           :class="xs ? 'mx-5 mb-4' : 'mx-2'"
           :aria-label="t('components.theSettings.pages')"
         >
+          <!-- The role keeps the list in Safari, which drops lists without bullets -->
           <v-sheet
             tag="ul"
+            role="list"
             class="plain-list py-2"
             rounded="lg"
           >

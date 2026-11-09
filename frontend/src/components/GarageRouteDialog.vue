@@ -26,9 +26,11 @@
       </v-card-item>
 
       <v-card-text class="pt-2">
-        <!-- A plain list instead of v-list, whose roles do not fit links and which only reaches the first one with Tab -->
+        <!-- A plain list instead of v-list, whose roles do not fit links and which only reaches the first one with Tab.
+             The role keeps the list in Safari, which drops lists without bullets. -->
         <v-sheet
           tag="ul"
+          role="list"
           class="plain-list overflow-hidden"
           :border="!xs"
           rounded="lg"

@@ -76,7 +76,7 @@
   },
   "routes": {
     "index": {
-      "showList": "Parkhausradar, show list",
+      "list": "Parkhausradar, parking garage list",
       "closeDetails": "Parkhausradar, close details"
     },
     "info": {
