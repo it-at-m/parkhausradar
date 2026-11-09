@@ -20,7 +20,7 @@
         :variant="panelShown ? 'text' : 'elevated'"
         :aria-label="
           detailsInPanel
-            ? t('components.garageDetails.close')
+            ? t('routes.index.closeDetails')
             : t('routes.index.showList')
         "
         :aria-expanded="detailsInPanel ? undefined : listVisible"
@@ -142,6 +142,7 @@ const listOverlayProps = computed(() => ({
     scrim: false,
     // The back button already closes it through the address
     closeOnBack: false,
+    "aria-labelledby": "garage-list-title",
     "onUpdate:modelValue": closeList,
   }),
 }));

@@ -5,8 +5,12 @@
     v-bind="overlayProps"
   >
     <template #activator="{ props: activatorProps }">
+      <!-- The menu holds settings instead of menu items. Unlike a menu, the dialog must not be owned
+           by the button, whose content screen readers present as a single element. -->
       <v-btn
         v-bind="activatorProps"
+        aria-haspopup="dialog"
+        :aria-owns="undefined"
         data-test="settings-open-btn"
         class="ma-4"
         :icon="mdiCog"
@@ -18,6 +22,7 @@
 
     <panel-card
       :max-height="xs ? undefined : MENU_MAX_HEIGHT"
+      title-id="settings-title"
       :title="t('components.theSettings.title')"
       :close-label="t('components.theSettings.close')"
       @close="isOpen = false"
@@ -46,6 +51,7 @@
             v-model="settingsStore.themePreference"
             class="w-100 h-auto pa-1 ga-1"
             :class="{ 'bg-surface': xs }"
+            role="group"
             aria-labelledby="settings-appearance-label"
             rounded="lg"
             :border="!xs"
@@ -57,6 +63,7 @@
               :data-test="`settings-theme-${option.value}-btn`"
               class="flex-1-1-0"
               :value="option.value"
+              :aria-pressed="settingsStore.themePreference === option.value"
               :prepend-icon="option.icon"
               :text="option.label"
               variant="text"
@@ -94,15 +101,11 @@
             />
           </v-defaults-provider>
 
-          <h3
-            id="settings-feedback-label"
-            class="text-label-large text-medium-emphasis mt-6 mb-2"
-          >
+          <h3 class="text-label-large text-medium-emphasis mt-6 mb-2">
             {{ t("components.theSettings.feedback") }}
           </h3>
-          <v-list
-            class="py-0"
-            aria-labelledby="settings-feedback-label"
+          <v-sheet
+            class="overflow-hidden"
             :border="!xs"
             rounded="lg"
           >
@@ -112,6 +115,7 @@
               target="_blank"
               rel="noopener noreferrer"
               :title="t('components.theSettings.feedbackSurvey')"
+              lines="one"
             >
               <template #append>
                 <v-icon
@@ -119,30 +123,37 @@
                   :icon="mdiOpenInNew"
                   size="small"
                 />
+                <span class="d-sr-only">{{ t("common.opensInNewTab") }}</span>
               </template>
             </v-list-item>
-          </v-list>
+          </v-sheet>
         </v-card-text>
 
-        <!-- Leaving the map closes the settings, as they are kept in the address of the map.
-             The links are reachable with Tab, Vuetify otherwise only reaches list items with the arrow keys. -->
-        <v-list
-          tag="nav"
+        <!-- Leaving the map closes the settings, as they are kept in the address of the map -->
+        <nav
           :class="xs ? 'mx-5 mb-4' : 'mx-2'"
           :aria-label="t('components.theSettings.pages')"
-          rounded="lg"
         >
-          <v-list-item
-            v-for="link in pageLinks"
-            :key="link.to"
-            :data-test="`settings-page-${link.to.slice(1)}-link`"
-            :to="link.to"
-            :prepend-icon="link.icon"
-            :title="link.label"
+          <v-sheet
+            tag="ul"
+            class="plain-list py-2"
             rounded="lg"
-            tabindex="0"
-          />
-        </v-list>
+          >
+            <li
+              v-for="link in pageLinks"
+              :key="link.to"
+            >
+              <v-list-item
+                :data-test="`settings-page-${link.to.slice(1)}-link`"
+                :to="link.to"
+                :prepend-icon="link.icon"
+                :title="link.label"
+                rounded="lg"
+                lines="one"
+              />
+            </li>
+          </v-sheet>
+        </nav>
       </div>
     </panel-card>
   </component>
@@ -196,8 +207,12 @@ const overlayProps = computed(() =>
         transition: "fade-transition",
         // The back button already closes it through the address
         closeOnBack: false,
+        "aria-labelledby": "settings-title",
       }
     : ({
+        // A panel next to the map, which unlike a menu holds settings
+        role: "dialog",
+        "aria-labelledby": "settings-title",
         locationStrategy: "static",
         contentProps: { style: { top: MENU_INSET, right: MENU_INSET } },
         transition: { component: RevealTransition },

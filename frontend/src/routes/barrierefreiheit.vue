@@ -9,7 +9,9 @@
         href="https://eur-lex.europa.eu/legal-content/DE/LSU/?uri=CELEX:32016L2102"
         target="_blank"
         rel="noopener noreferrer"
-        >Richtlinie (EU) 2016/2102</a
+        >Richtlinie (EU) 2016/2102<span class="d-sr-only">
+          (öffnet in neuem Tab)</span
+        ></a
       >
       des Europäischen Parlaments dazu verpflichtet, Webauftritte barrierefrei
       zugänglich zu machen.
@@ -32,7 +34,9 @@
         href="https://www.gesetze-bayern.de/Content/Document/BayDiV"
         target="_blank"
         rel="noopener noreferrer"
-        >Bayerischen Digitalverordnung</a
+        >Bayerischen Digitalverordnung<span class="d-sr-only">
+          (öffnet in neuem Tab)</span
+        ></a
       >
       (BayDiV) vereinbar.
     </p>

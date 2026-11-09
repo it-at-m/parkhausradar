@@ -47,4 +47,11 @@ watch(
 :root {
   --standard-easing: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Lists of v-list-items outside of v-list, which gives links the wrong roles */
+.plain-list {
+  margin: 0;
+  padding-inline: 0;
+  list-style: none;
+}
 </style>

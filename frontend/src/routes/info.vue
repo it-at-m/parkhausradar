@@ -4,8 +4,8 @@
       <p>{{ t("routes.info.intro") }}</p>
       <p>{{ t("routes.info.coverage") }}</p>
 
-      <v-list
-        class="mt-8"
+      <v-sheet
+        class="mt-8 py-2"
         rounded="lg"
       >
         <v-list-item
@@ -22,9 +22,10 @@
               :icon="mdiOpenInNew"
               size="small"
             />
+            <span class="d-sr-only">{{ t("common.opensInNewTab") }}</span>
           </template>
         </v-list-item>
-      </v-list>
+      </v-sheet>
 
       <footer class="mt-12">
         <p class="text-body-small text-medium-emphasis">

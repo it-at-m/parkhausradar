@@ -25,9 +25,11 @@
       <!-- The handle of the sheet already adds space above the title -->
       <v-card-item :class="{ 'pt-4': xs }">
         <template #prepend>
+          <!-- Only repeats the symbol of the markers for sighted users -->
           <v-avatar
             :color="colors.background"
             size="40"
+            aria-hidden="true"
           >
             <span
               class="text-title-medium font-weight-semibold"
@@ -100,7 +102,7 @@
               v-if="occupancy !== null"
               class="my-3"
               data-test="garage-details-occupancy"
-              :model-value="occupancy * 100"
+              :model-value="Math.round(occupancy * 100)"
               :color="colors.background"
               :aria-label="t('components.garageDetails.occupancy')"
               height="8"
@@ -149,31 +151,51 @@
               rel="noopener noreferrer"
               :prepend-icon="mdiDirections"
               :text="t('components.garageDetails.route')"
+              :aria-label="
+                routeUrl
+                  ? `${t('components.garageDetails.route')} ${t('common.opensInNewTab')}`
+                  : undefined
+              "
               color="primary"
               @click="showRoute"
             />
-            <!-- Icon buttons grow beyond the button height at default density -->
-            <v-btn
+            <!-- Components instead of the v-tooltip directive, which gives every tooltip the same id.
+                 Icon buttons grow beyond the button height at default density. -->
+            <v-tooltip
               v-if="garage.operatorUrl"
-              v-tooltip:top="t('components.garageDetails.operatorWebsite')"
-              data-test="garage-details-operator-link"
-              :href="garage.operatorUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              :icon="mdiWeb"
-              :aria-label="t('components.garageDetails.operatorWebsite')"
-              :color="innerSurfaceColor"
-              density="comfortable"
-            />
-            <v-btn
-              v-tooltip:top="t('components.garageDetails.share')"
-              data-test="garage-details-share-btn"
-              :icon="mdiShareVariant"
-              :aria-label="t('components.garageDetails.share')"
-              :color="innerSurfaceColor"
-              density="comfortable"
-              @click="share"
-            />
+              :text="t('components.garageDetails.operatorWebsite')"
+              location="top"
+            >
+              <template #activator="{ props: tooltipProps }">
+                <v-btn
+                  v-bind="tooltipProps"
+                  data-test="garage-details-operator-link"
+                  :href="garage.operatorUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :icon="mdiWeb"
+                  :aria-label="`${t('components.garageDetails.operatorWebsite')} ${t('common.opensInNewTab')}`"
+                  :color="innerSurfaceColor"
+                  density="comfortable"
+                />
+              </template>
+            </v-tooltip>
+            <v-tooltip
+              :text="t('components.garageDetails.share')"
+              location="top"
+            >
+              <template #activator="{ props: tooltipProps }">
+                <v-btn
+                  v-bind="tooltipProps"
+                  data-test="garage-details-share-btn"
+                  :icon="mdiShareVariant"
+                  :aria-label="t('components.garageDetails.share')"
+                  :color="innerSurfaceColor"
+                  density="comfortable"
+                  @click="share"
+                />
+              </template>
+            </v-tooltip>
           </div>
         </v-defaults-provider>
       </v-card-text>

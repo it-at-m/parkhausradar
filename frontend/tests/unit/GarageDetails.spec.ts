@@ -166,7 +166,9 @@ describe("GarageDetails content", () => {
 
     // then
     const link = wrapper.get("[data-test=garage-details-operator-link]");
-    expect(link.attributes("aria-label")).toBe("Website des Betreibers");
+    expect(link.attributes("aria-label")).toBe(
+      "Website des Betreibers (öffnet in neuem Tab)"
+    );
     expect(link.attributes("href")).toBe("https://www.operngarage.de/");
     expect(link.attributes("target")).toBe("_blank");
   });
@@ -354,6 +356,25 @@ describe("GarageDetails route", () => {
     ).toEqual(["_blank", "_blank", "_blank", "_blank"]);
   });
 
+  test("names the dialog and reaches every map app with the Tab key", async () => {
+    // given
+    const wrapper = mountDetails(createGarage());
+
+    // when
+    await openRouteDialog(wrapper);
+
+    // then
+    const dialog = document.querySelector(".v-overlay--active[role=dialog]");
+    const titleId = dialog?.getAttribute("aria-labelledby") ?? "";
+    expect(document.getElementById(titleId)?.textContent.trim()).toBe(
+      "Route zu Oper"
+    );
+    for (const app of ["apple", "google", "osm", "waze"]) {
+      expect(routeLink(app).tabIndex).toBe(0);
+      expect(routeLink(app).textContent).toContain("(öffnet in neuem Tab)");
+    }
+  });
+
   test("opens the remembered map app directly", async () => {
     // given
     useSettingsStore().mapAppPreference = "waze";
@@ -367,6 +388,7 @@ describe("GarageDetails route", () => {
     // then
     expect(new URL(button.attributes("href") ?? "").host).toBe("waze.com");
     expect(button.attributes("target")).toBe("_blank");
+    expect(button.attributes("aria-label")).toBe("Route (öffnet in neuem Tab)");
     expect(isRouteDialogShown()).toBe(false);
   });
 
@@ -418,6 +440,23 @@ describe("GarageDetails sharing", () => {
         .get("[data-test=garage-details-share-btn]")
         .attributes("aria-label")
     ).toBe("Teilen");
+  });
+
+  test("describes each icon button by its own tooltip", () => {
+    // when
+    const wrapper = mountDetails(
+      createGarage({ operatorUrl: "https://www.operngarage.de/" })
+    );
+
+    // then
+    const describedBy = [
+      "garage-details-operator-link",
+      "garage-details-share-btn",
+    ].map((dataTest) =>
+      wrapper.get(`[data-test=${dataTest}]`).attributes("aria-describedby")
+    );
+    expect(describedBy[0]).toBeTruthy();
+    expect(describedBy[0]).not.toBe(describedBy[1]);
   });
 
   test("shares a link to the garage with the share sheet of the device", async () => {

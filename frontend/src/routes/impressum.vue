@@ -47,7 +47,9 @@
         href="https://stadt.muenchen.de/infos/impressum.html"
         target="_blank"
         rel="noopener noreferrer"
-        >Impressum der Landeshauptstadt München</a
+        >Impressum der Landeshauptstadt München<span class="d-sr-only">
+          (öffnet in neuem Tab)</span
+        ></a
       >.
     </p>
   </text-page>

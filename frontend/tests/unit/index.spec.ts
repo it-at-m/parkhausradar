@@ -240,6 +240,23 @@ describe("index list closing", () => {
     expect(router.currentRoute.value.query).toEqual({});
     expect(document.activeElement).toBe(toggle().element);
   });
+
+  test("names the full screen list by its title on small screens", async () => {
+    // given
+    setScreenWidth(MOBILE_WIDTH);
+    await mountIndex();
+
+    // when
+    await toggle().trigger("click");
+    await flushPromises();
+
+    // then
+    const dialog = document.querySelector(".v-overlay--active[role=dialog]");
+    const titleId = dialog?.getAttribute("aria-labelledby") ?? "";
+    expect(document.getElementById(titleId)?.textContent.trim()).toBe(
+      "Parkhäuser"
+    );
+  });
 });
 
 describe("index garage selection on small screens", () => {
@@ -432,6 +449,16 @@ describe("index garage selection on larger screens", () => {
     expect(listShown()).toBe(true);
     expect(wrapper?.find("#garage-details-title").exists()).toBe(false);
     expect(router.currentRoute.value.query).toEqual({ view: "list" });
+  });
+
+  test("names the button in the header after its visible app name", async () => {
+    // when
+    await mountIndex("/?garage=P1");
+
+    // then
+    expect(toggle().attributes("aria-label")).toBe(
+      "Parkhausradar, Details schließen"
+    );
   });
 
   test("returns from details opened on the map to the map with the button in the header", async () => {

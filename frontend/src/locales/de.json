@@ -1,7 +1,12 @@
 {
+  "common": {
+    "opensInNewTab": "(öffnet in neuem Tab)"
+  },
   "components": {
     "theMap": {
       "label": "Karte von München",
+      "canvasLabel": "Kartenansicht, mit den Pfeiltasten verschieben, mit Plus und Minus zoomen",
+      "toggleAttribution": "Quellenangaben ein- oder ausblenden",
       "loadError": "Die Karte konnte nicht geladen werden.",
       "garage": "{name}: {free} von {capacity} frei",
       "garageOutdated": "{name}: {free} von {capacity} frei, Stand veraltet",
@@ -71,7 +76,8 @@
   },
   "routes": {
     "index": {
-      "showList": "Parkhausradar, Liste anzeigen"
+      "showList": "Parkhausradar, Liste anzeigen",
+      "closeDetails": "Parkhausradar, Details schließen"
     },
     "info": {
       "title": "Über das Parkhausradar",

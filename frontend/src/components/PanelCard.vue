@@ -20,6 +20,7 @@
         />
       </template>
       <v-card-title
+        :id="titleId"
         class="ma-0 text-title-medium font-weight-medium"
         tag="h2"
       >
@@ -37,6 +38,10 @@ import { useDisplay } from "vuetify";
 // Floating next to the map on larger screens, a full screen page with a back button on small screens
 defineProps<{
   title: string;
+  /**
+   * Lets the overlay around the card refer to the title as its name
+   */
+  titleId?: string;
   closeLabel: string;
 }>();
 
