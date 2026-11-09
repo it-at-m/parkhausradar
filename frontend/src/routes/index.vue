@@ -1,15 +1,6 @@
 <template>
+  <!-- The panels and the settings come before the map, so keyboard users reach them before every marker -->
   <div class="h-100">
-    <div
-      class="map h-100"
-      :inert="listShown && xs"
-    >
-      <the-map
-        ref="map"
-        v-model:selected-garage="selectedGarage"
-        :inset="mapInset"
-      />
-    </div>
     <div class="panels d-flex flex-column ga-2 pa-4">
       <app-name-button
         ref="viewToggle"
@@ -61,6 +52,17 @@
         </component>
       </div>
     </div>
+    <the-settings />
+    <div
+      class="map h-100"
+      :inert="listShown && xs"
+    >
+      <the-map
+        ref="map"
+        v-model:selected-garage="selectedGarage"
+        :inset="mapInset"
+      />
+    </div>
   </div>
 </template>
 
@@ -80,6 +82,7 @@ import GarageDetails from "@/components/GarageDetails.vue";
 import GarageList from "@/components/GarageList.vue";
 import RevealTransition from "@/components/RevealTransition.vue";
 import TheMap from "@/components/TheMap.vue";
+import TheSettings from "@/components/TheSettings.vue";
 import { useGarages } from "@/composables/useGarages";
 import { useQueryState } from "@/composables/useQueryState";
 import { isFocusInClosedDetails } from "@/util/focus";
@@ -153,12 +156,16 @@ const detailsTransitionProps = computed(() =>
 );
 
 const mapInset = computed(() => {
-  if (!selectedGarage.value || !detailsWidth.value) {
-    return { left: 0, bottom: 0 };
+  if (selectedGarage.value && detailsWidth.value) {
+    return xs.value
+      ? { left: 0, bottom: detailsHeight.value }
+      : { left: panelRowRight.value, bottom: 0 };
   }
-  return xs.value
-    ? { left: 0, bottom: detailsHeight.value }
-    : { left: panelRowRight.value, bottom: 0 };
+  // The list covers the map as well, the map moves focused markers out from under it
+  if (listVisible.value && !xs.value) {
+    return { left: panelRowRight.value, bottom: 0 };
+  }
+  return { left: 0, bottom: 0 };
 });
 
 function toggleView() {
@@ -220,9 +227,10 @@ watch(
   isolation: isolate;
 }
 
-/* Lets clicks next to the panels through to the map */
+/* Lets clicks next to the panels through to the map, which comes later and would otherwise cover them */
 .panels {
   position: fixed;
+  z-index: 1;
   inset: 0;
   pointer-events: none;
 }

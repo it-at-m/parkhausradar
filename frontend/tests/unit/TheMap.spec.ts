@@ -18,6 +18,7 @@ const { maps } = vi.hoisted(() => ({ maps: [] as FakeMap[] }));
 interface FakeMap {
   container: HTMLElement;
   easeTo: ReturnType<typeof vi.fn>;
+  project: ReturnType<typeof vi.fn>;
   style: StyleSpecification;
   click(target: Element): void;
 }
@@ -27,6 +28,7 @@ vi.mock("maplibre-gl", () => {
     container: HTMLElement;
     style: StyleSpecification;
     easeTo = vi.fn();
+    project = vi.fn(() => ({ x: 0, y: 0 }));
     touchZoomRotate = { disableRotation: vi.fn() };
     keyboard = { disableRotation: vi.fn() };
     private clickHandlers: ((event: { originalEvent: Event }) => void)[] = [];
@@ -403,6 +405,85 @@ describe("TheMap selection", () => {
     // then
     expect(afterMarkerClick?.pNumber).toBe("P1");
     expect(lastSelectedGarage()).toBeNull();
+  });
+});
+
+describe("TheMap keyboard focus", () => {
+  // jsdom neither lays out the map nor tells keyboard focus apart from clicks
+  function setMapSize(width: number, height: number) {
+    const container = fakeMap().container;
+    Object.defineProperty(container, "clientWidth", { value: width });
+    Object.defineProperty(container, "clientHeight", { value: height });
+  }
+
+  function focusWithKeyboard(marker: HTMLElement) {
+    vi.spyOn(marker, "matches").mockImplementation(
+      (selector) => selector === ":focus-visible"
+    );
+    marker.focus();
+  }
+
+  test("moves a marker focused outside of the visible area into view", async () => {
+    // given
+    await mountMap();
+    setMapSize(1024, 768);
+    fakeMap().project.mockReturnValue({ x: 1500, y: 400 });
+
+    // when
+    focusWithKeyboard(findMarker("Oper"));
+    await flushPromises();
+
+    // then
+    expect(fakeMap().easeTo).toHaveBeenCalledWith({
+      center: OPER.location,
+      offset: [0, -0],
+    });
+  });
+
+  test("moves a marker focused below content covering the map next to it", async () => {
+    // given
+    await mountMap();
+    await wrapper?.setProps({ inset: { left: 400, bottom: 0 } });
+    setMapSize(1024, 768);
+    fakeMap().project.mockReturnValue({ x: 300, y: 400 });
+
+    // when
+    focusWithKeyboard(findMarker("Oper"));
+    await flushPromises();
+
+    // then
+    expect(fakeMap().easeTo).toHaveBeenCalledWith({
+      center: OPER.location,
+      offset: [200, -0],
+    });
+  });
+
+  test("keeps the map when the focused marker is visible", async () => {
+    // given
+    await mountMap();
+    setMapSize(1024, 768);
+    fakeMap().project.mockReturnValue({ x: 500, y: 400 });
+
+    // when
+    focusWithKeyboard(findMarker("Oper"));
+    await flushPromises();
+
+    // then
+    expect(fakeMap().easeTo).not.toHaveBeenCalled();
+  });
+
+  test("keeps the map when a marker is focused by a click", async () => {
+    // given
+    await mountMap();
+    setMapSize(1024, 768);
+    fakeMap().project.mockReturnValue({ x: 1500, y: 400 });
+
+    // when
+    findMarker("Oper").focus();
+    await flushPromises();
+
+    // then
+    expect(fakeMap().easeTo).not.toHaveBeenCalled();
   });
 });
 

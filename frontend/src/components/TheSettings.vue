@@ -12,7 +12,7 @@
         aria-haspopup="dialog"
         :aria-owns="undefined"
         data-test="settings-open-btn"
-        class="ma-4"
+        class="open-button ma-4"
         :icon="mdiCog"
         :aria-label="t('components.theSettings.open')"
         position="fixed"
@@ -30,6 +30,7 @@
       <!-- Takes the place of the button that opened the menu -->
       <v-btn
         v-if="!xs"
+        ref="closeButton"
         data-test="settings-close-btn"
         class="ma-2"
         :icon="mdiCog"
@@ -166,6 +167,7 @@ import type {
   MapAppPreference,
   ThemePreference,
 } from "@/stores/settings";
+import type { ComponentPublicInstance } from "vue";
 
 import {
   mdiCardAccountDetailsOutline,
@@ -179,7 +181,7 @@ import {
   mdiWeatherNight,
   mdiWhiteBalanceSunny,
 } from "@mdi/js";
-import { computed } from "vue";
+import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 import { VDialog, VMenu } from "vuetify/components";
@@ -260,6 +262,21 @@ const isOpen = computed({
   get: () => query.get("dialog") === "settings",
   set: (open) => query.change({ dialog: open ? "settings" : undefined }),
 });
+const closeButton = useTemplateRef<ComponentPublicInstance>("closeButton");
+
+// Unlike the full screen dialog, the menu leaves the focus on its button, which the panel covers
+watch(
+  isOpen,
+  async (open) => {
+    if (open) {
+      await nextTick();
+      (closeButton.value?.$el as HTMLElement | undefined)?.focus({
+        preventScroll: true,
+      });
+    }
+  },
+  { immediate: true }
+);
 
 // Languages are shown in their own language so users can find theirs regardless of the current locale
 function getLanguageName(locale: Locale): string {
@@ -316,3 +333,10 @@ const pageLinks = computed(() => [
   },
 ]);
 </script>
+
+<style scoped>
+/* The map comes after the settings on the page and would otherwise cover the button */
+.open-button {
+  z-index: 1;
+}
+</style>

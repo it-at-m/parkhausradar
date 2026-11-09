@@ -9,6 +9,7 @@
       :aria-label="label"
       :aria-expanded="selected"
       @click="emit('select')"
+      @focus="onFocus"
     >
       <span class="pill">
         <span class="icon">{{ PARKING_SYMBOL }}</span>
@@ -62,7 +63,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [];
+  /**
+   * Focused with the keyboard, unlike a click, which selects the garage
+   */
+  focusVisible: [];
 }>();
+
+function onFocus(event: FocusEvent) {
+  if ((event.target as HTMLElement).matches(":focus-visible")) {
+    emit("focusVisible");
+  }
+}
 
 const { t } = useI18n();
 const freeSpaces = computed(
