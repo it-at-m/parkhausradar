@@ -397,6 +397,9 @@ describe("index details in the address", () => {
       )
     ).toBeNull();
     expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
+    expect(document.activeElement).toBe(
+      wrapper?.get("[data-test=garage-details-route-btn]").element
+    );
   });
 
   test("closing the details goes back instead of adding an entry the back button would reopen", async () => {

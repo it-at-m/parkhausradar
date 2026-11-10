@@ -194,6 +194,20 @@ describe("TheSettings opening", () => {
     expect(document.activeElement).toBe(findByDataTest("settings-close-btn"));
   });
 
+  test("moves the focus into the panel when turning a phone replaces the full screen dialog", async () => {
+    // given
+    setScreenWidth(375);
+    await mountApp(["de-DE"]);
+    await openSettings();
+
+    // when
+    setScreenWidth(760);
+    await flushPromises();
+
+    // then
+    expect(document.activeElement).toBe(findByDataTest("settings-close-btn"));
+  });
+
   test("announces and names the panel as a dialog", async () => {
     // given
     await mountApp(["de-DE"]);
@@ -477,6 +491,7 @@ describe("TheSettings legal pages", () => {
     await vi.waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe("/?dialog=settings");
       expect(getSettingsTitle()).toBe("Einstellungen");
+      expect(document.activeElement).toBe(findByDataTest("settings-close-btn"));
     });
   });
 

@@ -266,10 +266,11 @@ const isOpen = computed({
 });
 const closeButton = useTemplateRef<ComponentPublicInstance>("closeButton");
 
-// Unlike the full screen dialog, the menu leaves the focus on its button, which the panel covers
+// Unlike the full screen dialog, the menu leaves the focus on its button, which the panel covers.
+// Turning a phone also replaces the open dialog with the menu, which takes the focus out of the settings.
 watch(
-  isOpen,
-  async (open) => {
+  [isOpen, xs],
+  async ([open]) => {
     if (open) {
       await nextTick();
       (closeButton.value?.$el as HTMLElement | undefined)?.focus({

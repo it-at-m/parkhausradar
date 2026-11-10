@@ -480,6 +480,30 @@ describe("TheMap keyboard focus", () => {
     expect(fakeMap().easeTo).not.toHaveBeenCalled();
   });
 
+  // 768px high map with 300px covered by the details below, which leaves 112 to 420 for the point of a marker
+  test.for([
+    { y: 111, moves: true },
+    { y: 112, moves: false },
+    { y: 420, moves: false },
+    { y: 421, moves: true },
+  ])(
+    "keeps a focused marker clear of the buttons on top and the details below, at y = $y",
+    async ({ y, moves }) => {
+      // given
+      await mountMap();
+      await wrapper?.setProps({ inset: { left: 0, bottom: 300 } });
+      setMapSize(1024, 768);
+      fakeMap().project.mockReturnValue({ x: 500, y });
+
+      // when
+      focusWithKeyboard(findMarker("Oper"));
+      await flushPromises();
+
+      // then
+      expect(fakeMap().easeTo).toHaveBeenCalledTimes(moves ? 1 : 0);
+    }
+  );
+
   test("keeps the map when a marker is focused by a click", async () => {
     // given
     await mountMap();
