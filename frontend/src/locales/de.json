@@ -13,6 +13,7 @@
       "garageWithoutCapacity": "{name}: {free} frei",
       "garageWithoutCapacityOutdated": "{name}: {free} frei, Stand veraltet",
       "garageWithoutData": "{name}: keine Daten",
+      "free": "frei",
       "garagesLoadError": "Die Parkhäuser konnten nicht geladen werden.",
       "garagesRefreshError": "Die Belegung konnte nicht aktualisiert werden.",
       "dismissGaragesError": "Verwerfen"

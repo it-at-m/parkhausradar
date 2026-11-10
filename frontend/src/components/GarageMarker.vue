@@ -14,6 +14,11 @@
       <span class="pill">
         <span class="icon">{{ PARKING_SYMBOL }}</span>
         <span class="free-spaces">{{ freeSpaces }}</span>
+        <span
+          v-if="garage.freeSpaces"
+          class="free-label"
+          >{{ t("components.theMap.free") }}</span
+        >
         <svg
           class="tip"
           viewBox="-4 -4 18 12"
@@ -203,6 +208,12 @@ onBeforeUnmount(() => marker.remove());
   font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.free-label {
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1;
 }
 

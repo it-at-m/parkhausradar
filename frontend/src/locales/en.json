@@ -13,6 +13,7 @@
       "garageWithoutCapacity": "{name}: {free} free",
       "garageWithoutCapacityOutdated": "{name}: {free} free, outdated",
       "garageWithoutData": "{name}: no data",
+      "free": "free",
       "garagesLoadError": "The parking garages could not be loaded.",
       "garagesRefreshError": "The occupancy could not be updated.",
       "dismissGaragesError": "Dismiss"

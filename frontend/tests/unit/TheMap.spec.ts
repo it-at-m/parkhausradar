@@ -305,6 +305,9 @@ describe("TheMap garages", () => {
       expect(marker.querySelector(".free-spaces")?.textContent).toBe(
         garage.freeSpaces ? "312" : "?"
       );
+      expect(marker.querySelector(".free-label")?.textContent).toBe(
+        garage.freeSpaces ? "frei" : undefined
+      );
     }
   );
 
