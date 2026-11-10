@@ -425,6 +425,29 @@ describe("TheSettings legal pages", () => {
     }
   );
 
+  test.for([
+    { page: "info", title: "Über das Parkhausradar" },
+    { page: "impressum", title: "Impressum" },
+  ])(
+    "names the $page page in the title and moves the focus to its heading",
+    async ({ page, title }) => {
+      // given
+      await mountApp(["de-DE"]);
+      await openSettings();
+
+      // when
+      await click(findByDataTest(`settings-page-${page}-link`));
+
+      // then
+      await vi.waitFor(() => {
+        const heading = document.querySelector("article h1");
+        expect(heading?.textContent.trim()).toBe(title);
+        expect(document.activeElement).toBe(heading);
+      });
+      expect(document.title).toBe(`${title} - Parkhausradar`);
+    }
+  );
+
   test("reaches every page link with the Tab key", async () => {
     // given
     await mountApp(["de-DE"]);

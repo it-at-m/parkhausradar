@@ -147,6 +147,29 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
+describe("index page", () => {
+  test("names the page and starts keyboard users at its heading", async () => {
+    // when
+    await mountIndex();
+
+    // then
+    const heading = document.querySelector("h1");
+    expect(heading?.textContent.trim()).toBe("Parkhausradar");
+    expect(document.activeElement).toBe(heading);
+    expect(document.title).toBe("Parkhausradar");
+  });
+
+  test("leaves the focus with the details of a linked garage", async () => {
+    // when
+    await mountIndex("/?garage=P1");
+
+    // then
+    expect(
+      document.activeElement?.closest("[data-garage-details]")
+    ).not.toBeNull();
+  });
+});
+
 describe("index keyboard order", () => {
   test("reaches the toggle and the settings before the markers of the map", async () => {
     // when

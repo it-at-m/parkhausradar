@@ -20,7 +20,11 @@
       :text="t('components.textPage.germanOnly')"
     />
     <article :lang="germanOnly ? 'de' : undefined">
-      <h1 class="text-headline-large mb-6">
+      <h1
+        ref="heading"
+        class="heading text-headline-large mb-6"
+        tabindex="-1"
+      >
         {{ title }}
       </h1>
       <slot />
@@ -30,10 +34,15 @@
 
 <script setup lang="ts">
 import { mdiArrowLeft } from "@mdi/js";
+import { useTitle } from "@vueuse/core";
+import { onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
-defineProps<{
+import { APP_NAME } from "@/constants";
+import { focusPageHeading } from "@/util/focus";
+
+const props = defineProps<{
   title: string;
   /**
    * The text is only available in German, e.g. legal texts
@@ -43,6 +52,12 @@ defineProps<{
 
 const { t, locale } = useI18n();
 const router = useRouter();
+const heading = useTemplateRef("heading");
+
+// Every page sets its own title, restoring the previous one could overwrite the title of the next page
+useTitle(() => `${props.title} - ${APP_NAME}`, { restoreOnUnmount: false });
+
+onMounted(() => focusPageHeading(heading.value));
 
 // Going back restores the map as it was when the page was opened from the settings
 async function backToSettings() {
@@ -61,6 +76,11 @@ async function backToSettings() {
 </script>
 
 <style scoped>
+/* Only focused to move screen readers to the new page, it is no control */
+.heading:focus {
+  outline: none;
+}
+
 .text-page :slotted(h2) {
   margin-top: 32px;
   margin-bottom: 8px;
