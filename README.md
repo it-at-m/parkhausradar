@@ -67,6 +67,12 @@ The collector fetches the occupancy from the [data source](#data-sources) every 
 
 The servers run on Kubernetes with the Helm chart [`parkhausradar`](https://github.com/it-at-m/helm-charts/tree/main/charts/parkhausradar) of it@M. It deploys the frontend, the collector and the RefArch gateway with the images from `ghcr.io/it-at-m/parkhausradar`. The FROST-Server runs separately. Its URL and an optional proxy for the collector are set as values, the BasicAuth credentials of the collector in a Secret of the cluster.
 
+Every push to `main` builds the images with the tag `dev`. To release a version:
+
+1. Set the version in `frontend/` with `npm version <x.y.z> --no-git-tag-version` and in `collector/pyproject.toml` followed by `uv lock`, and merge it in a pull request.
+2. Create the release `v<x.y.z>` on `main` and mark it as latest release. Its tag builds both images with the tags `<x.y.z>` and `latest`.
+3. Set the new version in the Helm chart.
+
 ### Data Sources
 
 The occupancy comes from the parking guidance system of Munich: [pls-muc-z.com/pls/info/parkhaus.txt](https://pls-muc-z.com/pls/info/parkhaus.txt), one tab separated line per garage with serial number, connection, P-Number, name, free spaces and capacity. The source has no timestamp and does not mark offline counting systems.

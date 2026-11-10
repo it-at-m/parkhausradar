@@ -6,6 +6,8 @@ on:
   push:
     branches:
       - "main"
+    tags:
+      - "v*.*.*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,12 +21,13 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      # Expose matched filters as job 'packages' output variable
-      packages: ${{ steps.filter.outputs.changes }}
+      # Expose matched filters as job 'packages' output variable, a release builds everything
+      packages: ${{ github.ref_type == 'tag' && '["frontend","collector"]' || steps.filter.outputs.changes }}
     steps:
       - uses: it-at-m/lhm_actions/action-templates/actions/action-checkout@808f574bd8867b31524b254679fc34fb1fd78ea2 # v1.6.2
       # For pull requests it's not necessary to checkout the code
       - uses: it-at-m/lhm_actions/action-templates/actions/action-filter@808f574bd8867b31524b254679fc34fb1fd78ea2 # v1.6.2
+        if: ${{ github.ref_type != 'tag' }}
         id: filter
         with:
           base: ${{ github.ref }}
@@ -78,14 +81,15 @@ jobs:
           name: ${{ steps.python.outputs.artifact-name }}
           path: collector/*.py
           retention-days: 5
-      - if: ${{ github.ref == 'refs/heads/main' && (steps.node.outcome == 'success' || steps.maven.outcome == 'success' || steps.python.outcome == 'success') && hashFiles(format('./{0}/Dockerfile', matrix.app-path)) != '' }}
+      - if: ${{ (github.ref == 'refs/heads/main' || github.ref_type == 'tag') && (steps.node.outcome == 'success' || steps.maven.outcome == 'success' || steps.python.outcome == 'success') && hashFiles(format('./{0}/Dockerfile', matrix.app-path)) != '' }}
         uses: it-at-m/lhm_actions/action-templates/actions/action-build-image@808f574bd8867b31524b254679fc34fb1fd78ea2 # v1.6.2
         with:
           path: ${{ matrix.app-path }}
           artifact-name: ${{ join(steps.*.outputs.artifact-name) }}
           image-name: ${{ matrix.app-path }}
           image-tags: |
-            type=raw,value=dev
+            type=raw,value=dev,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
           platforms: "linux/amd64,linux/arm64"
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           registry-username: ${{ github.actor }}
