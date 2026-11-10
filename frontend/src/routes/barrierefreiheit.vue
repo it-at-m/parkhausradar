@@ -83,7 +83,16 @@
       für barrierefreie Informationstechnik<br />
       St.-Martin-Straße 47<br />
       81541 München<br />
-      E-Mail: <a href="mailto:bitv@ldbv.bayern.de">bitv@ldbv.bayern.de</a>
+      E-Mail: <a href="mailto:bitv@ldbv.bayern.de">bitv@ldbv.bayern.de</a><br />
+      Online:
+      <a
+        href="https://formularserver.bayern.de/intelliform/forms/rzsued/ldbv/ldbv/anforderungen_barrierefreiheit/index"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Antrag auf Prüfung der Barrierefreiheit<span class="d-sr-only">
+          (öffnet in neuem Tab)</span
+        ></a
+      >
     </address>
   </text-page>
 </template>
