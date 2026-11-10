@@ -1,6 +1,14 @@
 <template>
   <!-- The panels and the settings come before the map, so keyboard users reach them before every marker -->
   <div class="h-100">
+    <!-- The app name is only shown in the toggle, screen readers still find the page by its heading -->
+    <h1
+      ref="heading"
+      class="d-sr-only"
+      tabindex="-1"
+    >
+      {{ APP_NAME }}
+    </h1>
     <div class="panels d-flex flex-column ga-2 pa-4">
       <app-name-button
         ref="viewToggle"
@@ -71,8 +79,8 @@ import type { Garage } from "@/types/Garage";
 import type { ComponentPublicInstance } from "vue";
 
 import { mdiArrowLeft, mdiFormatListBulleted } from "@mdi/js";
-import { useElementBounding, useElementSize } from "@vueuse/core";
-import { computed, useTemplateRef, watch } from "vue";
+import { useElementBounding, useElementSize, useTitle } from "@vueuse/core";
+import { computed, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 import { VDialog, VSlideYReverseTransition } from "vuetify/components";
@@ -85,8 +93,12 @@ import TheMap from "@/components/TheMap.vue";
 import TheSettings from "@/components/TheSettings.vue";
 import { useGarages } from "@/composables/useGarages";
 import { useQueryState } from "@/composables/useQueryState";
-import { isFocusInClosedDetails } from "@/util/focus";
+import { APP_NAME } from "@/constants";
+import { focusPageHeading, isFocusInClosedDetails } from "@/util/focus";
 import { GARAGE_LINK_QUERY } from "@/util/garageLink";
+
+// Every page sets its own title, restoring the previous one could overwrite the title of the next page
+useTitle(APP_NAME, { restoreOnUnmount: false });
 
 const { t } = useI18n();
 const { xs } = useDisplay();
@@ -95,6 +107,7 @@ const { garages, loaded } = useGarages();
 const details = useTemplateRef("details");
 const list = useTemplateRef("list");
 const map = useTemplateRef("map");
+const heading = useTemplateRef("heading");
 const viewToggle = useTemplateRef<ComponentPublicInstance>("viewToggle");
 const viewToggleElement = computed<HTMLElement | undefined>(
   () => viewToggle.value?.$el
@@ -219,6 +232,8 @@ watch(
   },
   { flush: "post" }
 );
+
+onMounted(() => focusPageHeading(heading.value));
 </script>
 
 <style scoped>
