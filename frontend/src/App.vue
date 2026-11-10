@@ -63,6 +63,11 @@ watch(
   outline: 2px solid currentColor;
 }
 
+/* Vuetify cuts titles off after one line, on narrow screens and with larger text they wrap instead */
+.v-list-item-title {
+  white-space: normal;
+}
+
 /* Lists of v-list-items outside of v-list, which gives links the wrong roles */
 .plain-list {
   margin: 0;

@@ -22,184 +22,187 @@
         v-if="xs"
         class="handle"
       />
-      <!-- The handle of the sheet already adds space above the title -->
-      <v-card-item :class="{ 'pt-4': xs }">
-        <template #prepend>
-          <!-- Only repeats the symbol of the markers for sighted users -->
-          <v-avatar
-            :color="colors.background"
-            size="40"
-            aria-hidden="true"
-          >
-            <span
-              class="text-title-medium font-weight-semibold"
-              :style="{ color: colors.foreground }"
-            >
-              {{ PARKING_SYMBOL }}
-            </span>
-          </v-avatar>
-        </template>
-        <v-card-title
-          id="garage-details-title"
-          tag="h2"
-          class="ma-0 text-wrap text-break"
-        >
-          {{ garage.name }}
-        </v-card-title>
-        <v-card-subtitle
-          v-if="garage.address"
-          data-test="garage-details-address"
-          class="d-flex align-center ga-1 opacity-100 text-medium-emphasis text-wrap"
-        >
-          <v-icon
-            :icon="mdiMapMarker"
-            size="small"
-          />
-          {{ garage.address }}
-        </v-card-subtitle>
-        <template
-          v-if="xs"
-          #append
-        >
-          <v-icon-btn
-            data-test="garage-details-close-btn"
-            :icon="mdiClose"
-            :aria-label="t('components.garageDetails.close')"
-            :color="innerSurfaceColor"
-            variant="flat"
-            size="32"
-            icon-size="18"
-            @click="emit('close')"
-          />
-        </template>
-      </v-card-item>
-
-      <v-card-text class="pt-2">
-        <v-sheet
-          class="pa-4"
-          :color="innerSurfaceColor"
-          rounded="lg"
-        >
-          <template v-if="garage.freeSpaces">
-            <p class="d-flex align-baseline ga-2">
-              <span
-                class="free-spaces text-display-small font-weight-medium"
-                data-test="garage-details-free-spaces"
-              >
-                {{ garage.freeSpaces.value }}
-              </span>
-              <span class="text-body-large text-medium-emphasis">
-                {{
-                  garage.capacity
-                    ? t("components.garageDetails.ofCapacityFree", {
-                        capacity: garage.capacity.value,
-                      })
-                    : t("components.garageDetails.free")
-                }}
-              </span>
-            </p>
-            <v-progress-linear
-              v-if="occupancy !== null"
-              class="my-3"
-              data-test="garage-details-occupancy"
-              :model-value="Math.round(occupancy * 100)"
+      <!-- Scrolls on its own when zoomed in or on short screens, so the actions stay reachable -->
+      <div class="content">
+        <!-- The handle of the sheet already adds space above the title -->
+        <v-card-item :class="{ 'pt-4': xs }">
+          <template #prepend>
+            <!-- Only repeats the symbol of the markers for sighted users -->
+            <v-avatar
               :color="colors.background"
-              :aria-label="t('components.garageDetails.occupancy')"
-              height="8"
-              rounded
-            />
-            <div
-              class="meta d-flex justify-space-between ga-4 text-body-small text-medium-emphasis"
-              :class="{ 'mt-3': occupancy === null }"
+              size="40"
+              aria-hidden="true"
             >
-              <span v-if="occupancy !== null">
-                {{
-                  t("components.garageDetails.occupied", {
-                    percent: toPercentString(occupancy, locale),
-                  })
-                }}
+              <span
+                class="text-title-medium font-weight-semibold"
+                :style="{ color: colors.foreground }"
+              >
+                {{ PARKING_SYMBOL }}
               </span>
-              <span class="ms-auto">
-                {{
-                  t("components.garageDetails.updated", {
-                    time: toRelativeTimeString(
-                      garage.freeSpaces.measuredAt,
-                      now,
-                      locale
-                    ),
-                  })
-                }}
-              </span>
-            </div>
+            </v-avatar>
           </template>
-          <p
-            v-else
-            class="text-body-large text-medium-emphasis"
+          <v-card-title
+            id="garage-details-title"
+            tag="h2"
+            class="ma-0 text-wrap text-break"
           >
-            {{ t("components.garageDetails.noData") }}
-          </p>
-        </v-sheet>
-
-        <v-defaults-provider :defaults="ACTION_BUTTON_DEFAULTS">
-          <div class="d-flex ga-2 mt-3">
-            <!-- Opens the remembered app directly, otherwise lets users choose one -->
-            <v-btn
-              ref="routeButton"
-              class="flex-grow-1"
-              data-test="garage-details-route-btn"
-              :href="routeUrl"
-              :target="routeUrl ? '_blank' : undefined"
-              rel="noopener noreferrer"
-              :prepend-icon="mdiDirections"
-              :text="t('components.garageDetails.route')"
-              :aria-label="
-                routeUrl
-                  ? `${t('components.garageDetails.route')} ${t('common.opensInNewTab')}`
-                  : undefined
-              "
-              color="primary"
-              @click="showRoute"
+            {{ garage.name }}
+          </v-card-title>
+          <v-card-subtitle
+            v-if="garage.address"
+            data-test="garage-details-address"
+            class="d-flex align-center ga-1 opacity-100 text-medium-emphasis text-wrap"
+          >
+            <v-icon
+              :icon="mdiMapMarker"
+              size="small"
             />
-            <!-- Components instead of the v-tooltip directive, which gives every tooltip the same id.
+            {{ garage.address }}
+          </v-card-subtitle>
+          <template
+            v-if="xs"
+            #append
+          >
+            <v-icon-btn
+              data-test="garage-details-close-btn"
+              :icon="mdiClose"
+              :aria-label="t('components.garageDetails.close')"
+              :color="innerSurfaceColor"
+              variant="flat"
+              size="32"
+              icon-size="18"
+              @click="emit('close')"
+            />
+          </template>
+        </v-card-item>
+
+        <v-card-text class="pt-2">
+          <v-sheet
+            class="pa-4"
+            :color="innerSurfaceColor"
+            rounded="lg"
+          >
+            <template v-if="garage.freeSpaces">
+              <p class="d-flex align-baseline ga-2">
+                <span
+                  class="free-spaces text-display-small font-weight-medium"
+                  data-test="garage-details-free-spaces"
+                >
+                  {{ garage.freeSpaces.value }}
+                </span>
+                <span class="text-body-large text-medium-emphasis">
+                  {{
+                    garage.capacity
+                      ? t("components.garageDetails.ofCapacityFree", {
+                          capacity: garage.capacity.value,
+                        })
+                      : t("components.garageDetails.free")
+                  }}
+                </span>
+              </p>
+              <v-progress-linear
+                v-if="occupancy !== null"
+                class="my-3"
+                data-test="garage-details-occupancy"
+                :model-value="Math.round(occupancy * 100)"
+                :color="colors.background"
+                :aria-label="t('components.garageDetails.occupancy')"
+                height="8"
+                rounded
+              />
+              <div
+                class="meta d-flex justify-space-between ga-4 text-body-small text-medium-emphasis"
+                :class="{ 'mt-3': occupancy === null }"
+              >
+                <span v-if="occupancy !== null">
+                  {{
+                    t("components.garageDetails.occupied", {
+                      percent: toPercentString(occupancy, locale),
+                    })
+                  }}
+                </span>
+                <span class="ms-auto">
+                  {{
+                    t("components.garageDetails.updated", {
+                      time: toRelativeTimeString(
+                        garage.freeSpaces.measuredAt,
+                        now,
+                        locale
+                      ),
+                    })
+                  }}
+                </span>
+              </div>
+            </template>
+            <p
+              v-else
+              class="text-body-large text-medium-emphasis"
+            >
+              {{ t("components.garageDetails.noData") }}
+            </p>
+          </v-sheet>
+
+          <v-defaults-provider :defaults="ACTION_BUTTON_DEFAULTS">
+            <div class="d-flex ga-2 mt-3">
+              <!-- Opens the remembered app directly, otherwise lets users choose one -->
+              <v-btn
+                ref="routeButton"
+                class="flex-grow-1"
+                data-test="garage-details-route-btn"
+                :href="routeUrl"
+                :target="routeUrl ? '_blank' : undefined"
+                rel="noopener noreferrer"
+                :prepend-icon="mdiDirections"
+                :text="t('components.garageDetails.route')"
+                :aria-label="
+                  routeUrl
+                    ? `${t('components.garageDetails.route')} ${t('common.opensInNewTab')}`
+                    : undefined
+                "
+                color="primary"
+                @click="showRoute"
+              />
+              <!-- Components instead of the v-tooltip directive, which gives every tooltip the same id.
                  Icon buttons grow beyond the button height at default density. -->
-            <v-tooltip
-              v-if="garage.operatorUrl"
-              :text="t('components.garageDetails.operatorWebsite')"
-              location="top"
-            >
-              <template #activator="{ props: tooltipProps }">
-                <v-btn
-                  v-bind="tooltipProps"
-                  data-test="garage-details-operator-link"
-                  :href="garage.operatorUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  :icon="mdiWeb"
-                  :aria-label="`${t('components.garageDetails.operatorWebsite')} ${t('common.opensInNewTab')}`"
-                  :color="innerSurfaceColor"
-                  density="comfortable"
-                />
-              </template>
-            </v-tooltip>
-            <v-tooltip
-              :text="t('components.garageDetails.share')"
-              location="top"
-            >
-              <template #activator="{ props: tooltipProps }">
-                <v-btn
-                  v-bind="tooltipProps"
-                  data-test="garage-details-share-btn"
-                  :icon="mdiShareVariant"
-                  :aria-label="t('components.garageDetails.share')"
-                  :color="innerSurfaceColor"
-                  density="comfortable"
-                  @click="share"
-                />
-              </template>
-            </v-tooltip>
-          </div>
-        </v-defaults-provider>
-      </v-card-text>
+              <v-tooltip
+                v-if="garage.operatorUrl"
+                :text="t('components.garageDetails.operatorWebsite')"
+                location="top"
+              >
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    data-test="garage-details-operator-link"
+                    :href="garage.operatorUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    :icon="mdiWeb"
+                    :aria-label="`${t('components.garageDetails.operatorWebsite')} ${t('common.opensInNewTab')}`"
+                    :color="innerSurfaceColor"
+                    density="comfortable"
+                  />
+                </template>
+              </v-tooltip>
+              <v-tooltip
+                :text="t('components.garageDetails.share')"
+                location="top"
+              >
+                <template #activator="{ props: tooltipProps }">
+                  <v-btn
+                    v-bind="tooltipProps"
+                    data-test="garage-details-share-btn"
+                    :icon="mdiShareVariant"
+                    :aria-label="t('components.garageDetails.share')"
+                    :color="innerSurfaceColor"
+                    density="comfortable"
+                    @click="share"
+                  />
+                </template>
+              </v-tooltip>
+            </div>
+          </v-defaults-provider>
+        </v-card-text>
+      </div>
       <garage-route-dialog
         v-model="routeDialogShown"
         :garage="garage"
@@ -376,6 +379,9 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
 
 <style scoped>
 .garage-details {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   outline: none;
 }
 
@@ -385,10 +391,19 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
   right: 0;
   bottom: 0;
   left: 0;
+  max-height: 100%;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   transition: transform 150ms var(--standard-easing);
+}
+
+.content {
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .mobile .card {

@@ -234,9 +234,10 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
   list-style: none;
 }
 
-/* Wide enough for four digits, so the names of all garages start at the same position */
+/* Wide enough for four digits, so the names of all garages start at the same position. Only grows with larger
+   text spacing, which would otherwise cut off the count. */
 .free-spaces {
-  width: 80px;
+  min-width: 80px;
   font-variant-numeric: tabular-nums;
 }
 
