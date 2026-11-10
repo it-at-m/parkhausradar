@@ -375,6 +375,24 @@ describe("GarageDetails route", () => {
     }
   });
 
+  test("returns the focus to the route button when the dialog closes", async () => {
+    // given
+    const wrapper = mountDetails(createGarage());
+    await openRouteDialog(wrapper);
+
+    // when
+    document
+      .querySelector<HTMLElement>("[data-test=garage-route-cancel-btn]")
+      ?.click();
+    await flushPromises();
+
+    // then
+    expect(isRouteDialogShown()).toBe(false);
+    expect(document.activeElement).toBe(
+      wrapper.get("[data-test=garage-details-route-btn]").element
+    );
+  });
+
   test("opens the remembered map app directly", async () => {
     // given
     useSettingsStore().mapAppPreference = "waze";

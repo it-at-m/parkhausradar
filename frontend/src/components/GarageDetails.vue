@@ -144,6 +144,7 @@
           <div class="d-flex ga-2 mt-3">
             <!-- Opens the remembered app directly, otherwise lets users choose one -->
             <v-btn
+              ref="routeButton"
               class="flex-grow-1"
               data-test="garage-details-route-btn"
               :href="routeUrl"
@@ -209,6 +210,7 @@
 
 <script setup lang="ts">
 import type { Garage } from "@/types/Garage";
+import type { ComponentPublicInstance } from "vue";
 
 import {
   mdiClose,
@@ -218,7 +220,7 @@ import {
   mdiWeb,
 } from "@mdi/js";
 import { useEventListener, useIntervalFn, useNow } from "@vueuse/core";
-import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useDisplay } from "vuetify";
 
@@ -261,6 +263,7 @@ const now = useNow({
   scheduler: (callback) => useIntervalFn(callback, 30_000),
 });
 const root = useTemplateRef("root");
+const routeButton = useTemplateRef<ComponentPublicInstance>("routeButton");
 
 const occupancy = computed(() => getOccupancy(props.garage));
 // The sheet has the gray background of the full screen pages, its boxes stand out in the surface color
@@ -291,6 +294,16 @@ function showRoute() {
     routeDialogShown.value = true;
   }
 }
+
+// Like Vuetify does for an activator, which would also open the dialog for a remembered map app
+watch(routeDialogShown, async (shown) => {
+  if (!shown) {
+    await nextTick();
+    (routeButton.value?.$el as HTMLElement | undefined)?.focus({
+      preventScroll: true,
+    });
+  }
+});
 
 async function share() {
   const url = getGarageLink(props.garage.pNumber);

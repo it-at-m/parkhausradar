@@ -6,6 +6,7 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 
 import App from "../../src/App.vue";
+import TheSettings from "../../src/components/TheSettings.vue";
 import i18n from "../../src/plugins/i18n";
 import vuetify from "../../src/plugins/vuetify";
 import BarrierefreiheitPage from "../../src/routes/barrierefreiheit.vue";
@@ -66,7 +67,8 @@ async function mountApp(deviceLanguages: string[]) {
   const router = createRouter({
     history: createWebHistory(),
     routes: [
-      { path: "/", component: { template: "<div />" } },
+      // Stands in for the map page, which holds the settings
+      { path: "/", component: TheSettings },
       { path: "/info", component: InfoPage },
       { path: "/impressum", component: ImpressumPage },
       { path: "/datenschutz", component: DatenschutzPage },
@@ -179,6 +181,31 @@ describe("TheSettings opening", () => {
       findByDataTest("settings-open-btn").getAttribute("aria-expanded")
     ).toBe("false");
     expect(router.currentRoute.value.query).toEqual({});
+  });
+
+  test("moves the focus into the panel, which covers the button that opened it", async () => {
+    // given
+    await mountApp(["de-DE"]);
+
+    // when
+    await openSettings();
+
+    // then
+    expect(document.activeElement).toBe(findByDataTest("settings-close-btn"));
+  });
+
+  test("moves the focus into the panel when turning a phone replaces the full screen dialog", async () => {
+    // given
+    setScreenWidth(375);
+    await mountApp(["de-DE"]);
+    await openSettings();
+
+    // when
+    setScreenWidth(760);
+    await flushPromises();
+
+    // then
+    expect(document.activeElement).toBe(findByDataTest("settings-close-btn"));
   });
 
   test("announces and names the panel as a dialog", async () => {
@@ -464,6 +491,7 @@ describe("TheSettings legal pages", () => {
     await vi.waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe("/?dialog=settings");
       expect(getSettingsTitle()).toBe("Einstellungen");
+      expect(document.activeElement).toBe(findByDataTest("settings-close-btn"));
     });
   });
 

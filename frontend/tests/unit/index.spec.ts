@@ -147,6 +147,26 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
+describe("index keyboard order", () => {
+  test("reaches the toggle and the settings before the markers of the map", async () => {
+    // when
+    await mountIndex();
+
+    // then
+    const order = [
+      "[data-test=view-toggle-btn]",
+      "[data-test=settings-open-btn]",
+      "[data-test=map]",
+    ].map((selector) => document.querySelector(selector));
+    expect(order).not.toContain(null);
+    for (let index = 1; index < order.length; index++) {
+      expect(
+        order[index - 1]?.compareDocumentPosition(order[index] as Node)
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    }
+  });
+});
+
 describe("index view toggle", () => {
   test("switches from the map to the list and back", async () => {
     // given
@@ -377,6 +397,9 @@ describe("index details in the address", () => {
       )
     ).toBeNull();
     expect(wrapper?.get("#garage-details-title").text()).toBe("Oper");
+    expect(document.activeElement).toBe(
+      wrapper?.get("[data-test=garage-details-route-btn]").element
+    );
   });
 
   test("closing the details goes back instead of adding an entry the back button would reopen", async () => {

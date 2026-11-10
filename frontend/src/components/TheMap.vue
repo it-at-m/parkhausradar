@@ -15,6 +15,7 @@
       :now="now"
       :selected="garage.pNumber === selectedGarage?.pNumber"
       @select="selectedGarage = garage"
+      @focus-visible="showFocusedMarker(garage)"
     />
   </template>
   <!-- Bound to the loading state instead of the snackbar queue, so it disappears once loading works again -->
@@ -77,7 +78,7 @@ import basemap from "../../basemap.json";
 const props = defineProps<{
   /**
    * Space covered by content along the left and bottom edge of the map,
-   * the selected garage is centered in the remaining area
+   * the selected garage and focused markers are shown in the remaining area
    */
   inset: { left: number; bottom: number };
 }>();
@@ -103,6 +104,8 @@ const INITIAL_BOUNDS: [number, number, number, number] = [
 ];
 // Close enough to tell the streets around a garage apart, the map never zooms out on selection
 const SELECTED_GARAGE_MIN_ZOOM = 15;
+// Room for the floating buttons along the top edge and for the marker, which extends above its point
+const FOCUSED_MARKER_PADDING = { top: 112, right: 64, bottom: 48, left: 64 };
 
 const { t, locale } = useI18n();
 const theme = useTheme();
@@ -171,6 +174,29 @@ function showSelectedGarage() {
     zoom: Math.max(map.value.getZoom(), SELECTED_GARAGE_MIN_ZOOM),
     offset: [props.inset.left / 2, -props.inset.bottom / 2],
   });
+}
+
+// Keyboard users also reach markers outside of the visible area, where their focus could not be seen
+function showFocusedMarker(garage: Garage) {
+  const container = mapContainer.value;
+  if (!map.value || !container) {
+    return;
+  }
+  const { x, y } = map.value.project(garage.location);
+  const visible =
+    x >= props.inset.left + FOCUSED_MARKER_PADDING.left &&
+    x <= container.clientWidth - FOCUSED_MARKER_PADDING.right &&
+    y >= FOCUSED_MARKER_PADDING.top &&
+    y <=
+      container.clientHeight -
+        props.inset.bottom -
+        FOCUSED_MARKER_PADDING.bottom;
+  if (!visible) {
+    map.value.easeTo({
+      center: garage.location,
+      offset: [props.inset.left / 2, -props.inset.bottom / 2],
+    });
+  }
 }
 
 async function fetchCityBoundary(): Promise<Feature<Polygon | MultiPolygon>> {
