@@ -1,6 +1,9 @@
 {
   "_comment": "TEMPORARY TRANSITIVE DEPENDENCY OVERRIDES FOR SECURITY FIXES",
-  "overrides": {},
+  "overrides": {
+    "glob": "^14.0.2",
+    "minimatch@>=9": "^11.0.1"
+  },
   "name": "parkhausradar-frontend",
   "version": "0.0.0",
   "type": "module",
