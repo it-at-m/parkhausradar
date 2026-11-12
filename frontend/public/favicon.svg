@@ -1,0 +1,14 @@
+<!-- The garage marker of the map without the number, the P is the glyph of Roboto Bold at 13px -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <!-- Without the number, the tip meets the rounded ends, so it starts further inside than on the map -->
+  <path d="M4.172 22L18 35.828L31.828 22Z" fill="#fff"/>
+  <rect width="36" height="28" rx="14" fill="#fff"/>
+  <rect x="2" y="2" width="32" height="24" rx="12" fill="#1a7f37"/>
+  <path d="M7 22L18 33L29 22Z" fill="#1a7f37"/>
+  <circle cx="18" cy="14" r="10" fill="#fff"/>
+  <path
+    transform="translate(18 14) scale(0.00634766 -0.00634766) translate(-686.5 -728)"
+    d="M697 519H430V0H130V1456H697Q868 1456 990.5 1394.5Q1113 1333 1178 1225Q1243 1117 1243 978Q1243 837 1178 734Q1113 631 990.5 575Q868 519 697 519ZM430 753H697Q783 753 837 781.5Q891 810 916 861Q941 912 941 976Q941 1041 916 1097Q891 1153 837 1187Q783 1221 697 1221H430Z"
+    fill="#1a7f37"
+  />
+</svg>
