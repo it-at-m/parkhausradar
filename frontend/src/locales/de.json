@@ -55,6 +55,11 @@
     },
     "garageList": {
       "title": "Parkhäuser",
+      "columns": {
+        "freeSpaces": "Stell­plätze",
+        "garage": "Parkhaus",
+        "occupancy": "Auslastung"
+      },
       "free": "{free} frei",
       "occupied": "{percent} belegt",
       "noData": "Keine Daten",
