@@ -29,11 +29,28 @@
           {{ t("components.garageList.title") }}
         </h2>
       </div>
+      <div
+        v-if="sortedGarages.length"
+        class="d-flex align-end text-label-large text-medium-emphasis mb-2"
+        :class="xs ? 'mt-4 mx-4 px-4' : 'px-5'"
+        data-test="garage-list-columns"
+        aria-hidden="true"
+      >
+        <span class="free-spaces-column me-3 text-center">{{
+          t("components.garageList.columns.freeSpaces")
+        }}</span>
+        <span class="flex-grow-1">{{
+          t("components.garageList.columns.garage")
+        }}</span>
+        <span class="ms-3">{{
+          t("components.garageList.columns.occupancy")
+        }}</span>
+      </div>
       <!-- On small screens the garages form one group like the pages on iOS -->
       <v-sheet
         v-if="sortedGarages.length"
         class="garages"
-        :class="xs ? 'mt-2 mx-4 mb-4' : 'px-2 pb-3'"
+        :class="xs ? 'mx-4 mb-4' : 'px-2 pb-3'"
         :rounded="xs ? 'lg' : 0"
       >
         <ul class="list">
@@ -91,10 +108,16 @@
               </template>
               <template #append>
                 <span
-                  class="occupancy ms-3 text-body-small text-medium-emphasis text-no-wrap"
-                  data-test="garage-list-occupancy"
+                  class="occupancy ms-3 text-body-medium text-medium-emphasis text-no-wrap"
                 >
-                  {{ describeOccupancy(garage) }}
+                  <span
+                    data-test="garage-list-occupancy"
+                    aria-hidden="true"
+                    >{{ describeOccupancy(garage).visible }}</span
+                  >
+                  <span class="d-sr-only">{{
+                    describeOccupancy(garage).spoken
+                  }}</span>
                 </span>
               </template>
             </v-list-item>
@@ -171,20 +194,28 @@ function getStatusColors(garage: Garage) {
   return GARAGE_STATUS_COLORS[getGarageStatus(garage, now.value)];
 }
 
-function describeOccupancy(garage: Garage): string | null {
+function describeOccupancy(garage: Garage): {
+  visible: string;
+  spoken: string;
+} {
   if (!garage.freeSpaces) {
-    return t("components.garageList.noData");
+    const text = t("components.garageList.noData");
+    return { visible: text, spoken: text };
   }
   // Tells the outdated counts apart without relying on the gray color alone
   if (isGarageDataOutdated(garage, now.value)) {
-    return t("components.garageList.outdated");
+    const text = t("components.garageList.outdated");
+    return { visible: text, spoken: text };
   }
   const occupancy = getOccupancy(garage);
-  return occupancy === null
-    ? null
-    : t("components.garageList.occupied", {
-        percent: toPercentString(occupancy, locale.value),
-      });
+  if (occupancy === null) {
+    return { visible: "", spoken: "" };
+  }
+  const percent = toPercentString(occupancy, locale.value);
+  return {
+    visible: percent,
+    spoken: t("components.garageList.occupied", { percent }),
+  };
 }
 
 // Open details are closed first
@@ -241,7 +272,12 @@ onMounted(() => root.value?.focus({ preventScroll: true }));
   font-variant-numeric: tabular-nums;
 }
 
+.free-spaces-column {
+  min-width: 80px;
+}
+
 .occupancy {
   letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 </style>

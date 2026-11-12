@@ -108,7 +108,7 @@ describe("GarageList content", () => {
       case: "with capacity",
       overrides: {},
       freeSpaces: "312 frei",
-      occupancy: "22 % belegt",
+      occupancy: "22 %",
     },
     {
       case: "without capacity",
@@ -158,6 +158,39 @@ describe("GarageList content", () => {
       ).toBe(occupancy);
     }
   );
+
+  test("names the occupancy for screen readers, which skip the column titles", async () => {
+    // given
+    vi.mocked(getGarages).mockResolvedValue([
+      createGarage("P1", "Oper", { address: "Max-Joseph-Platz 4" }),
+    ]);
+
+    // when
+    await mountList();
+
+    // then
+    const item = items()[0]?.element.cloneNode(true) as HTMLElement;
+    item
+      .querySelectorAll("[aria-hidden=true]")
+      .forEach((hidden) => hidden.remove());
+    const texts: string[] = [];
+    const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const text = walker.currentNode.textContent?.replace(/\s+/g, " ").trim();
+      if (text) {
+        texts.push(text);
+      }
+    }
+    expect(texts).toEqual([
+      "312 frei",
+      "Oper",
+      "Max-Joseph-Platz 4",
+      "22 % belegt",
+    ]);
+    expect(
+      wrapper?.get("[data-test=garage-list-columns]").attributes("aria-hidden")
+    ).toBe("true");
+  });
 
   test("shows that the garages are loading", async () => {
     // given

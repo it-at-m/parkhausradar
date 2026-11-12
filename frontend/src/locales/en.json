@@ -55,6 +55,11 @@
     },
     "garageList": {
       "title": "Parking garages",
+      "columns": {
+        "freeSpaces": "Spaces",
+        "garage": "Garage",
+        "occupancy": "Occupancy"
+      },
       "free": "{free} free",
       "occupied": "{percent} occupied",
       "noData": "No data",
